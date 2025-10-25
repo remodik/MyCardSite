@@ -4,18 +4,19 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import uuid
 from datetime import datetime
 
-API_URL = "https://6489053f-0853-43a0-8d83-b6d933d76bd9.preview.emergentagent.com"
+API_URL = "http://0.0.0.0:8001"
 
 async def create_demo_data():
-    # Login as admin
     response = requests.post(f"{API_URL}/api/auth/login", json={
-        "username": "admin",
-        "password": "admin123"
+        "username": "remod3",
+        "password": "domer123"
     })
+    print("STATUS", response.status_code)
+    print("TEXT", response.text)
+    print("JSON", response.json())
     token = response.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
-    
-    # Create a project
+
     project_response = requests.post(
         f"{API_URL}/api/projects",
         headers=headers,
@@ -24,10 +25,11 @@ async def create_demo_data():
             "description": "A demonstration project with various file types"
         }
     )
+    print("PROJECT RESPONSE STATUS:", project_response.status_code)
+    print("PROJECT RESPONSE TEXT:", project_response.text)
     project_id = project_response.json()["id"]
     print(f"Created project: {project_id}")
-    
-    # Create README.md file
+
     readme_content = """# Demo Project
 
 Welcome to the demo project! This showcases file management and markdown rendering.

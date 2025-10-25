@@ -10,13 +10,13 @@ async def create_test_user():
     client = AsyncIOMotorClient("mongodb://localhost:27017/projectsdb")
     db = client.projectsdb
     
-    # Check if user already exists
+    # Check if a user already exists
     existing_user = await db.users.find_one({"username": "testuser"})
     if existing_user:
         print("Test user already exists!")
         return
     
-    # Create test user
+    # Create a test user
     user_id = str(uuid.uuid4())
     user = {
         "id": user_id,

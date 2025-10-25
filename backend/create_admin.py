@@ -6,32 +6,32 @@ from datetime import datetime
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
 async def create_admin():
     client = AsyncIOMotorClient("mongodb://localhost:27017/projectsdb")
     db = client.projectsdb
-    
-    # Check if admin already exists
-    existing_admin = await db.users.find_one({"username": "admin"})
+
+    existing_admin = await db.users.find_one({"username": "remod3"})
     if existing_admin:
         print("Admin user already exists!")
         return
-    
-    # Create admin user
+
     admin_id = str(uuid.uuid4())
     admin = {
         "id": admin_id,
-        "username": "admin",
-        "email": "admin@example.com",
-        "password_hash": pwd_context.hash("admin123"),
+        "username": "remod3",
+        "email": "slenderzet@gmail.com",
+        "password_hash": pwd_context.hash("domer123"),
         "role": "admin",
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": datetime.now().isoformat(),
     }
     
     await db.users.insert_one(admin)
     print("Admin user created successfully!")
-    print("Username: admin")
-    print("Password: admin123")
-    print("Email: admin@example.com")
+    print("Username: remod3")
+    print("Password: domer123")
+    print("Email: slenderzet@gmail.com")
+
 
 if __name__ == "__main__":
     asyncio.run(create_admin())
