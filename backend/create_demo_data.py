@@ -1,15 +1,14 @@
 import asyncio
+
 import requests
-from motor.motor_asyncio import AsyncIOMotorClient
-import uuid
-from datetime import datetime
 
 API_URL = "http://0.0.0.0:8001"
+
 
 async def create_demo_data():
     response = requests.post(f"{API_URL}/api/auth/login", json={
         "username": "remod3",
-        "password": "domer123"
+        "password": "rerere"
     })
     print("STATUS", response.status_code)
     print("TEXT", response.text)
@@ -72,8 +71,7 @@ def hello_world():
         }
     )
     print("Created README.md")
-    
-    # Create a Python file
+
     python_content = """def fibonacci(n):
     \"\"\"Generate Fibonacci sequence up to n numbers\"\"\"
     fib = [0, 1]
@@ -102,10 +100,8 @@ if __name__ == "__main__":
         }
     )
     print("Created fibonacci.py")
-    
-    # Create a JavaScript file
-    js_content = """// React component example
-import React, { useState } from 'react';
+
+    js_content = """import React, { useState } from 'react';
 
 const Counter = () => {
   const [count, setCount] = useState(0);
@@ -137,8 +133,7 @@ export default Counter;
         }
     )
     print("Created Counter.jsx")
-    
-    # Create package.json
+
     package_json = """{
   "name": "demo-project",
   "version": "1.0.0",
@@ -169,8 +164,7 @@ export default Counter;
         }
     )
     print("Created package.json")
-    
-    # Create .gitignore
+
     gitignore_content = """node_modules/
 .env
 .DS_Store

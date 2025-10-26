@@ -1,9 +1,13 @@
+import asyncio
 import base64
 import os
 import random
+import smtplib
 import string
 import uuid
 from datetime import datetime, timedelta
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from typing import Optional, List, Dict, Any
 
 from dotenv import load_dotenv
@@ -14,8 +18,6 @@ from jose import JWTError, jwt
 from motor.motor_asyncio import AsyncIOMotorClient
 from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
 
 load_dotenv()
 
@@ -40,8 +42,13 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
-SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 FROM_EMAIL = os.getenv("FROM_EMAIL")
+SMTP_HOST = os.getenv("SMTP_HOST")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USER = os.getenv("SMTP_USER")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
+SMTP_USE_TLS = os.getenv("SMTP_USE_TLS", "true").lower() in {"1", "true", "yes"}
+SMTP_TIMEOUT = int(os.getenv("SMTP_TIMEOUT", "30"))
 
 
 class ConnectionManager:
@@ -174,21 +181,47 @@ def generate_reset_code():
     return ''.join(random.choices(string.digits, k=6))
 
 
-async def send_reset_email(email: str, code: str):
+def _send_reset_email(email: str, code: str) -> bool:
+    if not SMTP_HOST:
+        print("SMTP host is not configured; skipping email send.")
+        return False
+
+    sender = FROM_EMAIL or SMTP_USER
+    if not sender:
+        print("No sender email configured; set FROM_EMAIL or SMTP_USER.")
+        return False
+
+    message = MIMEMultipart("alternative")
+    message["Subject"] = "Password Reset Code"
+    message["From"] = sender
+    message["To"] = email
+
+    text_content = f"Your password reset code is: {code}\nThis code will expire in 15 minutes."
+    html_content = (
+        f"<strong>Your password reset code is: {code}</strong><br>"
+        "This code will expire in 15 minutes."
+    )
+
+    message.attach(MIMEText(text_content, "plain"))
+    message.attach(MIMEText(html_content, "html"))
     try:
-        message = Mail(
-            from_email=FROM_EMAIL,
-            to_emails=email,
-            subject='Password Reset Code',
-            html_content=f'<strong>Your password reset code is: {code}</strong><br>This code will expire in 15 minutes.'
-        )
-        sg = SendGridAPIClient(SENDGRID_API_KEY)
-        sg.send(message)
-        print(message)
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=SMTP_TIMEOUT) as server:
+            server.ehlo()
+            if SMTP_USE_TLS:
+                server.starttls()
+                server.ehlo()
+            if SMTP_USER and SMTP_PASSWORD:
+                server.login(SMTP_USER, SMTP_PASSWORD)
+            server.sendmail(sender, [email], message.as_string())
         return True
     except Exception as e:
         print(f"Error sending email: {e}")
         return False
+
+
+async def send_reset_email(email: str, code: str):
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, _send_reset_email, email, code)
 
 
 @app.post("/api/auth/register", response_model=Token)
@@ -453,7 +486,7 @@ async def upload_file(
 
     file_type = file.filename.split('.')[-1] if '.' in file.filename else 'txt'
 
-    if file_type in ['png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'avi', 'mov', 'webm']:
+    if file_type in ['png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'avi', 'mov', 'webm', 'ico']:
         content_str = base64.b64encode(content).decode('utf-8')
         is_binary = True
     else:

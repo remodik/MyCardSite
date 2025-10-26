@@ -112,7 +112,7 @@ export default function ProjectDetail() {
 
     if (file.is_binary) {
       const fileType = file.file_type.toLowerCase();
-      if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(fileType)) {
+      if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'ico'].includes(fileType)) {
         return (
           <img
             src={`data:image/${fileType};base64,${file.content}`}
@@ -162,7 +162,6 @@ export default function ProjectDetail() {
       );
     }
 
-    // Code files with syntax highlighting
     const languageMap = {
       js: 'javascript',
       jsx: 'javascript',
