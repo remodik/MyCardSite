@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 export default function PasswordReset() {
-  const [step, setStep] = useState(1); // 1: request, 2: enter code
+  const [step, setStep] = useState(1);
   const [usernameOrEmail, setUsernameOrEmail] = useState('');
   const [resetCode, setResetCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -12,6 +12,7 @@ export default function PasswordReset() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [hasEmail, setHasEmail] = useState(true);
+  const [emailSent, setEmailSent] = useState(null);
 
   const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
@@ -28,6 +29,11 @@ export default function PasswordReset() {
 
       setMessage(response.data.message);
       setHasEmail(response.data.has_email);
+      setEmailSent(
+        Object.prototype.hasOwnProperty.call(response.data, 'email_sent')
+          ? response.data.email_sent
+          : null
+      );
 
       if (response.data.has_email) {
         setStep(2);
@@ -35,7 +41,9 @@ export default function PasswordReset() {
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to request password reset');
     } finally {
-      setLoading(false);
+        setEmailSent(null);
+        setHasEmail(true);
+        setLoading(false);
     }
   };
 
@@ -93,6 +101,18 @@ export default function PasswordReset() {
             {message && (
               <div className="rounded-md bg-green-50 dark:bg-green-900/20 p-4">
                 <p className="text-sm text-green-800 dark:text-green-200">{message}</p>
+                  {hasEmail && emailSent === false && (
+                  <p className="mt-2 text-xs text-green-700 dark:text-green-300">
+                    Email delivery failed. Please verify SMTP settings on the server or contact an administrator.
+                  </p>
+                )}
+              </div>
+            )}
+            {!hasEmail && message && (
+              <div className="rounded-md bg-blue-50 dark:bg-blue-900/20 p-4">
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  Your request was sent to an administrator. They will review and update your password manually.
+                </p>
               </div>
             )}
             <div>

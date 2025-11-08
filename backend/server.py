@@ -19,6 +19,7 @@ from jose import JWTError, jwt
 from motor.motor_asyncio import AsyncIOMotorClient
 from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr
+from pymongo.errors import PyMongoError, ServerSelectionTimeoutError
 
 load_dotenv()
 
@@ -184,7 +185,23 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
+async def ensure_db_connection():
+    try:
+        await db.command("ping")
+    except ServerSelectionTimeoutError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database connection failed. Ensure MongoDB is running or update MONGO_URL.",
+        ) from exc
+    except PyMongoError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unexpected database error occurred.",
+        ) from exc
+
+
 async def get_current_user(token: str = Depends(oauth2_scheme)):
+    await ensure_db_connection()
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -291,6 +308,7 @@ async def send_reset_email(email: str, code: str) -> bool:
 
 @app.post("/api/auth/register", response_model=Token)
 async def register(user: UserCreate):
+    await ensure_db_connection()
     existing_user = await db.users.find_one({"username": user.username})
     if existing_user:
         raise HTTPException(status_code=400, detail="Username already registered")
@@ -331,6 +349,7 @@ async def register(user: UserCreate):
 
 @app.post("/api/auth/login", response_model=Token)
 async def login(user: UserLogin):
+    await ensure_db_connection()
     db_user = await db.users.find_one({"username": user.username})
     if not db_user or not verify_password(user.password, db_user["password_hash"]):
         raise HTTPException(
@@ -366,6 +385,7 @@ async def get_me(current_user: dict = Depends(get_current_user)):
 
 @app.post("/api/auth/password-reset-request")
 async def request_password_reset(request: PasswordResetRequest):
+    await ensure_db_connection()
     user = await db.users.find_one({
         "$or": [
             {"username": request.username_or_email},
@@ -416,7 +436,7 @@ async def request_password_reset(request: PasswordResetRequest):
 
 @app.post("/api/auth/password-reset")
 async def reset_password(reset: PasswordReset):
-    # Find user
+    await ensure_db_connection()
     user = await db.users.find_one({
         "$or": [
             {"username": reset.username_or_email},
@@ -426,8 +446,7 @@ async def reset_password(reset: PasswordReset):
     
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
-    # Find valid reset code
+
     reset_request = await db.password_resets.find_one({
         "user_id": user["id"],
         "code": reset.reset_code,
@@ -673,6 +692,7 @@ async def update_user_role(user_id: str, role: str, current_user: dict = Depends
 
 @app.websocket("/api/ws/chat")
 async def websocket_chat(websocket: WebSocket, token: str):
+    await websocket.accept()
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("sub")
