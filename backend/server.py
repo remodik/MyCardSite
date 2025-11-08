@@ -208,8 +208,12 @@ def _send_reset_email(email: str, code: str) -> bool:
         with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=SMTP_TIMEOUT) as server:
             server.ehlo()
             if SMTP_USE_TLS:
+                server = smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=SMTP_TIMEOUT)
+                server.ehlo()
                 server.starttls()
                 server.ehlo()
+            else:
+                server = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=SMTP_TIMEOUT)
             if SMTP_USER and SMTP_PASSWORD:
                 server.login(SMTP_USER, SMTP_PASSWORD)
             server.sendmail(sender, [email], message.as_string())
