@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Depends, status, WebSocket, WebSocketDisconnect, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
+from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from jose import JWTError, jwt
 from motor.motor_asyncio import AsyncIOMotorClient
 from passlib.context import CryptContext
@@ -47,8 +48,40 @@ SMTP_HOST = os.getenv("SMTP_HOST")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER = os.getenv("SMTP_USER")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
-SMTP_USE_TLS = os.getenv("SMTP_USE_TLS", "true").lower() in {"1", "true", "yes"}
+
+
+def _env_flag(name: str, default: str = "false") -> bool:
+    return os.getenv(name, default).strip().lower() in {"1", "true", "yes", "on"}
+
+
+SMTP_USE_TLS = _env_flag("SMTP_USE_TLS", "true")
+SMTP_USE_SSL = _env_flag("SMTP_USE_SSL", "false")
+SMTP_VALIDATE_CERTS = _env_flag("SMTP_VALIDATE_CERTS", "true")
+SMTP_SUPPRESS_SEND = _env_flag("SMTP_SUPPRESS_SEND", "false")
 SMTP_TIMEOUT = int(os.getenv("SMTP_TIMEOUT", "30"))
+SMTP_FROM_NAME = os.getenv("SMTP_FROM_NAME")
+
+
+FASTMAIL_CONFIG: Optional[ConnectionConfig] = None
+FASTMAIL_CLIENT: Optional[FastMail] = None
+
+if SMTP_HOST:
+    mail_from = FROM_EMAIL or SMTP_USER
+    if mail_from:
+        FASTMAIL_CONFIG = ConnectionConfig(
+            MAIL_USERNAME=SMTP_USER,
+            MAIL_PASSWORD=SMTP_PASSWORD,
+            MAIL_FROM=mail_from,
+            MAIL_FROM_NAME=SMTP_FROM_NAME,
+            MAIL_PORT=SMTP_PORT,
+            MAIL_SERVER=SMTP_HOST,
+            MAIL_STARTTLS=SMTP_USE_TLS and not SMTP_USE_SSL,
+            MAIL_SSL_TLS=SMTP_USE_SSL,
+            USE_CREDENTIALS=bool(SMTP_USER and SMTP_PASSWORD),
+            VALIDATE_CERTS=SMTP_VALIDATE_CERTS,
+            SUPPRESS_SEND=SMTP_SUPPRESS_SEND,
+        )
+        FASTMAIL_CLIENT = FastMail(FASTMAIL_CONFIG)
 
 
 class ConnectionManager:
@@ -181,7 +214,25 @@ def generate_reset_code():
     return ''.join(random.choices(string.digits, k=6))
 
 
-def _send_reset_email(email: str, code: str) -> bool:
+def _compose_reset_email(code: str) -> Dict[str, str]:
+    subject = "Password Reset Code"
+    text_content = (
+        f"Your password reset code is: {code}\n"
+        "This code will expire in 15 minutes."
+    )
+    html_content = (
+        "<p><strong>Your password reset code is:</strong> "
+        f"<code>{code}</code></p>"
+        "<p>This code will expire in 15 minutes.</p>"
+    )
+    return {
+        "subject": subject,
+        "text": text_content,
+        "html": html_content,
+    }
+
+
+def _send_reset_email(email: str, message_data: Dict[str, str]) -> bool:
     if not SMTP_HOST:
         print("SMTP host is not configured; skipping email send.")
         return False
@@ -191,41 +242,51 @@ def _send_reset_email(email: str, code: str) -> bool:
         print("No sender email configured; set FROM_EMAIL or SMTP_USER.")
         return False
 
-    message = MIMEMultipart("alternative")
-    message["Subject"] = "Password Reset Code"
-    message["From"] = sender
-    message["To"] = email
+    if SMTP_USE_TLS and SMTP_USE_SSL:
+        print("Both SMTP_USE_TLS and SMTP_USE_SSL are enabled; defaulting to TLS only.")
 
-    text_content = f"Your password reset code is: {code}\nThis code will expire in 15 minutes."
-    html_content = (
-        f"<strong>Your password reset code is: {code}</strong><br>"
-        "This code will expire in 15 minutes."
-    )
+    mime_message = MIMEMultipart("alternative")
+    mime_message["Subject"] = message_data["subject"]
+    mime_message["From"] = sender
+    mime_message["To"] = email
 
-    message.attach(MIMEText(text_content, "plain"))
-    message.attach(MIMEText(html_content, "html"))
+    mime_message.attach(MIMEText(message_data["text"], "plain"))
+    mime_message.attach(MIMEText(message_data["html"], "html"))
+
+    smtp_class = smtplib.SMTP_SSL if (SMTP_USE_SSL and not SMTP_USE_TLS) else smtplib.SMTP
+
     try:
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=SMTP_TIMEOUT) as server:
+        with smtp_class(SMTP_HOST, SMTP_PORT, timeout=SMTP_TIMEOUT) as server:
             server.ehlo()
-            if SMTP_USE_TLS:
-                server = smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=SMTP_TIMEOUT)
-                server.ehlo()
+            if SMTP_USE_TLS and smtp_class is smtplib.SMTP:
                 server.starttls()
                 server.ehlo()
-            else:
-                server = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=SMTP_TIMEOUT)
             if SMTP_USER and SMTP_PASSWORD:
                 server.login(SMTP_USER, SMTP_PASSWORD)
-            server.sendmail(sender, [email], message.as_string())
+            server.sendmail(sender, [email], mime_message.as_string())
         return True
-    except Exception as e:
-        print(f"Error sending email: {e}")
+    except Exception as exc:
+        print(f"Error sending email: {exc}")
         return False
 
 
-async def send_reset_email(email: str, code: str):
+async def send_reset_email(email: str, code: str) -> bool:
+    message_data = _compose_reset_email(code)
+
+    if FASTMAIL_CLIENT:
+        message = MessageSchema(
+            subject=message_data["subject"],
+            recipients=[email],
+            body=message_data["html"],
+            subtype=MessageType.html,
+        )
+        try:
+            await FASTMAIL_CLIENT.send_message(message)
+            return True
+        except Exception as exc:
+            print(f"FastMail send failed, falling back to SMTP: {exc}")
     loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(None, _send_reset_email, email, code)
+    return await loop.run_in_executor(None, _send_reset_email, email, message_data)
 
 
 @app.post("/api/auth/register", response_model=Token)
