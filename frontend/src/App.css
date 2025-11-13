@@ -219,3 +219,103 @@
   font-size: 0.9em;
   line-height: 1.5;
 }
+
+/* Math formulas (KaTeX) */
+.prose .katex {
+  font-size: 1.1em;
+}
+
+.prose .katex-display {
+  margin: 1.5em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* Emoji support */
+.prose img.emoji {
+  display: inline;
+  height: 1.2em;
+  width: 1.2em;
+  margin: 0 0.1em;
+  vertical-align: -0.1em;
+}
+
+/* Definition lists */
+.prose dl {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.prose dt {
+  font-weight: 600;
+  margin-top: 1em;
+}
+
+.prose dd {
+  margin-left: 1.5em;
+  margin-top: 0.5em;
+}
+
+/* Improved links */
+.prose a {
+  color: #58a6ff;
+  text-decoration: none;
+  word-wrap: break-word;
+}
+
+.prose a:hover {
+  text-decoration: underline;
+}
+
+.prose a code {
+  color: #58a6ff;
+}
+
+/* Details/Summary support */
+.prose details {
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 1em;
+  margin: 1em 0;
+}
+
+.prose summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin: -1em;
+  padding: 1em;
+  user-select: none;
+}
+
+.prose details[open] summary {
+  border-bottom: 1px solid #30363d;
+  margin-bottom: 1em;
+}
+
+/* Keyboard keys */
+.prose kbd {
+  display: inline-block;
+  padding: 0.2em 0.4em;
+  font-size: 0.85em;
+  line-height: 1;
+  color: #c9d1d9;
+  background-color: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 3px;
+  box-shadow: inset 0 -1px 0 #30363d;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+/* Abbreviations */
+.prose abbr {
+  text-decoration: underline dotted;
+  cursor: help;
+}
+
+/* Mark/Highlight */
+.prose mark {
+  background-color: rgba(210, 153, 34, 0.3);
+  color: inherit;
+  padding: 0.1em 0.2em;
+  border-radius: 2px;
+}
