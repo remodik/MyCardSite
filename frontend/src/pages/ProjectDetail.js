@@ -139,6 +139,8 @@ export default function ProjectDetail() {
       return (
         <div className="prose dark:prose-invert max-w-none">
           <ReactMarkdown
+            remarkPlugins={[remarkGfm, remarkBreaks]}
+            rehypePlugins={[rehypeRaw]}
             components={{
               code({ node, inline, className, children, ...props }) {
                 const match = /language-(\w+)/.exec(className || '');
@@ -147,6 +149,7 @@ export default function ProjectDetail() {
                     style={vscDarkPlus}
                     language={match[1]}
                     PreTag="div"
+                    showLineNumbers
                     {...props}
                   >
                     {String(children).replace(/\n$/, '')}
@@ -155,6 +158,18 @@ export default function ProjectDetail() {
                   <code className={className} {...props}>
                     {children}
                   </code>
+                );
+              },
+              // Улучшенная поддержка task lists
+              input({ node, checked, ...props }) {
+                return (
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    disabled
+                    className="mr-2"
+                    {...props}
+                  />
                 );
               },
             }}
