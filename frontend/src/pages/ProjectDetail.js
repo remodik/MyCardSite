@@ -143,8 +143,16 @@ export default function ProjectDetail() {
       return (
         <div className="prose dark:prose-invert max-w-none">
           <ReactMarkdown
-            remarkPlugins={[remarkGfm, remarkBreaks]}
-            rehypePlugins={[rehypeRaw]}
+            remarkPlugins={[
+              remarkGfm,           // GitHub Flavored Markdown (tables, strikethrough, task lists)
+              remarkBreaks,        // Soft line breaks
+              remarkEmoji,         // Emoji support :smile:
+              remarkMath,          // Math formulas $E=mc^2$
+            ]}
+            rehypePlugins={[
+              rehypeRaw,           // Allow HTML in markdown
+              rehypeKatex,         // Render math with KaTeX
+            ]}
             components={{
               code({ node, inline, className, children, ...props }) {
                 const match = /language-(\w+)/.exec(className || '');
@@ -174,6 +182,19 @@ export default function ProjectDetail() {
                     className="mr-2"
                     {...props}
                   />
+                );
+              },
+              // Поддержка автоссылок
+              a({ node, href, children, ...props }) {
+                return (
+                  <a 
+                    href={href} 
+                    target={href?.startsWith('http') ? '_blank' : undefined}
+                    rel={href?.startsWith('http') ? 'noopener noreferrer' : undefined}
+                    {...props}
+                  >
+                    {children}
+                  </a>
                 );
               },
             }}
