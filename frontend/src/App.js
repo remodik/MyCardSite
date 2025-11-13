@@ -49,17 +49,18 @@ function AppRoutes({ darkMode, setDarkMode }) {
     <>
       {user && <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />}
       <Routes>
+        <Route path="/" element={<Home />} />
         <Route
           path="/login"
-          element={!user ? <Login /> : <Navigate to="/projects" />}
+          element={!user ? <Login /> : <Navigate to="/" />}
         />
         <Route
           path="/register"
-          element={!user ? <Register /> : <Navigate to="/projects" />}
+          element={!user ? <Register /> : <Navigate to="/" />}
         />
         <Route
           path="/reset-password"
-          element={!user ? <PasswordReset /> : <Navigate to="/projects" />}
+          element={!user ? <PasswordReset /> : <Navigate to="/" />}
         />
         <Route
           path="/projects"
@@ -77,7 +78,6 @@ function AppRoutes({ darkMode, setDarkMode }) {
           path="/admin"
           element={user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/projects" />}
         />
-        <Route path="/" element={<Navigate to="/projects" />} />
       </Routes>
     </>
   );
