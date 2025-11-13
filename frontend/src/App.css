@@ -115,3 +115,34 @@
   margin-top: 2em;
   margin-bottom: 2em;
 }
+
+/* Animations for Home page */
+@keyframes fadeInCard {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInCard 0.6s ease-out forwards;
+}
+
+.animate-fade-in-delay {
+  animation: fadeInCard 0.6s ease-out 0.2s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-delay-2 {
+  animation: fadeInCard 0.6s ease-out 0.4s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-delay-3 {
+  animation: fadeInCard 0.6s ease-out 0.6s forwards;
+  opacity: 0;
+}
