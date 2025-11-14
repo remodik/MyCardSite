@@ -9,21 +9,42 @@ from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import Optional, List, Dict, Any
+from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Depends, status, WebSocket, WebSocketDisconnect, UploadFile, File, Form
+from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from jose import JWTError, jwt
-from motor.motor_asyncio import AsyncIOMotorClient
 from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr
-from pymongo.errors import PyMongoError, ServerSelectionTimeoutError
+from sqlalchemy import delete, or_, select, text, update
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from database import (
+    AdminResetRequest,
+    ChatMessage,
+    File as FileModel,
+    PasswordReset as PasswordResetModel,
+    Project,
+    User,
+    async_session_factory,
+    get_session,
+    init_models,
+)
 
 load_dotenv()
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_models()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -32,10 +53,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017/projectsdb")
-client = AsyncIOMotorClient(MONGO_URL)
-db = client.projectsdb
 
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-this")
 ALGORITHM = "HS256"
@@ -61,7 +78,6 @@ SMTP_VALIDATE_CERTS = _env_flag("SMTP_VALIDATE_CERTS", "true")
 SMTP_SUPPRESS_SEND = _env_flag("SMTP_SUPPRESS_SEND", "false")
 SMTP_TIMEOUT = int(os.getenv("SMTP_TIMEOUT", "30"))
 SMTP_FROM_NAME = os.getenv("SMTP_FROM_NAME")
-
 
 FASTMAIL_CONFIG: Optional[ConnectionConfig] = None
 FASTMAIL_CLIENT: Optional[FastMail] = None
@@ -89,26 +105,24 @@ class ConnectionManager:
     def __init__(self):
         self.active_connections: List[Dict[str, Any]] = []
 
-    async def connect(self, websocket: WebSocket, user_id: str, username: str):
+    async def connect(self, websocket: WebSocket, user_id: str, username: str) -> None:
         await websocket.accept()
         self.active_connections.append({
-            "websocket": websocket,
-            "user_id": user_id,
-            "username": username
+                "websocket": websocket,
+                "user_id": user_id,
+                "username": username
         })
 
-    def disconnect(self, websocket: WebSocket):
-        self.active_connections = [
-            conn for conn in self.active_connections 
-            if conn["websocket"] != websocket
-        ]
+    def disconnect(self, websocket: WebSocket) -> None:
+        self.active_connections = [conn for conn in self.active_connections if conn["websocket"] != websocket]
 
-    async def broadcast(self, message: dict):
+    async def broadcast(self, message: dict) -> None:
         for connection in self.active_connections:
             try:
                 await connection["websocket"].send_json(message)
-            except:
+            except Exception:
                 pass
+
 
 manager = ConnectionManager()
 
@@ -162,19 +176,19 @@ class FileUpdate(BaseModel):
     content: Optional[str] = None
 
 
-class ChatMessage(BaseModel):
+class ChatMessagePayload(BaseModel):
     message: str
 
 
-def verify_password(plain_password, hashed_password):
+def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def get_password_hash(password):
+def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now() + expires_delta
@@ -185,23 +199,65 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-async def ensure_db_connection():
+def _to_iso(dt: Optional[datetime]) -> Optional[str]:
+    return dt.isoformat() if dt else None
+
+
+def user_to_public_dict(user: User) -> Dict[str, Any]:
+    return {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "role": user.role,
+        "created_at": _to_iso(user.created_at),
+    }
+
+
+def project_to_dict(project: Project) -> Dict[str, Any]:
+    return {
+        "id": project.id,
+        "name": project.name,
+        "description": project.description or "",
+        "created_by": project.created_by,
+        "created_at": _to_iso(project.created_at),
+    }
+
+
+def file_to_dict(file: FileModel) -> Dict[str, Any]:
+    return {
+        "id": file.id,
+        "project_id": file.project_id,
+        "name": file.name,
+        "content": file.content,
+        "file_type": file.file_type,
+        "is_binary": file.is_binary,
+        "created_at": _to_iso(file.created_at),
+        "updated_at": _to_iso(file.updated_at),
+    }
+
+
+def chat_message_to_dict(message: ChatMessage) -> Dict[str, Any]:
+    return {
+        "id": message.id,
+        "user_id": message.user_id,
+        "username": message.username,
+        "message": message.message,
+        "timestamp": _to_iso(message.timestamp),
+    }
+
+
+async def ensure_db_connection(session: AsyncSession) -> None:
     try:
-        await db.command("ping")
-    except ServerSelectionTimeoutError as exc:
+        await session.execute(text("SELECT 1"))
+    except SQLAlchemyError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Database connection failed. Ensure MongoDB is running or update MONGO_URL.",
-        ) from exc
-    except PyMongoError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Unexpected database error occurred.",
+            detail="Database connection failed. Ensure DATABASE_URL is correct."
         ) from exc
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
-    await ensure_db_connection()
+async def get_current_user(token: str = Depends(oauth2_scheme), session: AsyncSession = Depends(get_session)) -> Dict[str, Any]:
+    await ensure_db_connection(session)
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -209,34 +265,32 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: str = payload.get("sub")
+        user_id: Optional[str] = payload.get("sub")
         if user_id is None:
             raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-    
-    user = await db.users.find_one({"id": user_id})
+    except JWTError as exc:
+        raise credentials_exception from exc
+
+    result = await session.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
     if user is None:
         raise credentials_exception
-    return user
+    return user_to_public_dict(user)
 
 
-async def get_current_admin(current_user: dict = Depends(get_current_user)):
+async def get_current_admin(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
     if current_user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
 
 
-def generate_reset_code():
-    return ''.join(random.choices(string.digits, k=6))
+def generate_reset_code() -> str:
+    return "".join(random.choices(string.digits, k=6))
 
 
 def _compose_reset_email(code: str) -> Dict[str, str]:
     subject = "Password Reset Code"
-    text_content = (
-        f"Your password reset code is: {code}\n"
-        "This code will expire in 15 minutes."
-    )
+    text_content = f"Your password reset code is: {code}\nThis code will expire in 15 minutes."
     html_content = (
         "<p><strong>Your password reset code is:</strong> "
         f"<code>{code}</code></p>"
@@ -282,7 +336,7 @@ def _send_reset_email(email: str, message_data: Dict[str, str]) -> bool:
                 server.login(SMTP_USER, SMTP_PASSWORD)
             server.sendmail(sender, [email], mime_message.as_string())
         return True
-    except Exception as exc:
+    except Exception as exc:  # pragma: no cover - logging for runtime issues
         print(f"Error sending email: {exc}")
         return False
 
@@ -300,58 +354,60 @@ async def send_reset_email(email: str, code: str) -> bool:
         try:
             await FASTMAIL_CLIENT.send_message(message)
             return True
-        except Exception as exc:
+        except Exception as exc:  # pragma: no cover - logging for runtime issues
             print(f"FastMail send failed, falling back to SMTP: {exc}")
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, _send_reset_email, email, message_data)
 
 
+@app.on_event("startup")
+async def startup_event() -> None:
+    await init_models()
+
+
 @app.post("/api/auth/register", response_model=Token)
-async def register(user: UserCreate):
-    await ensure_db_connection()
-    existing_user = await db.users.find_one({"username": user.username})
+async def register(user: UserCreate, session: AsyncSession = Depends(get_session)) -> Dict[str, Any]:
+    await ensure_db_connection(session)
+
+    result = await session.execute(select(User).where(User.username == user.username))
+    existing_user = result.scalar_one_or_none()
     if existing_user:
         raise HTTPException(status_code=400, detail="Username already registered")
 
     if user.email:
-        existing_email = await db.users.find_one({"email": user.email})
+        result = await session.execute(select(User).where(User.email == user.email))
+        existing_email = result.scalar_one_or_none()
         if existing_email:
             raise HTTPException(status_code=400, detail="Email already registered")
 
     user_id = str(uuid.uuid4())
-    user_dict = {
-        "id": user_id,
-        "username": user.username,
-        "email": user.email,
-        "password_hash": get_password_hash(user.password),
-        "role": "user",
-        "created_at": datetime.now().isoformat(),
-    }
-    
-    await db.users.insert_one(user_dict)
+    user_obj = User(
+        id=user_id,
+        username=user.username,
+        email=user.email,
+        password_hash=get_password_hash(user.password),
+        role="user",
+        created_at=datetime.now(),
+    )
+    session.add(user_obj)
+    await session.commit()
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user_id}, expires_delta=access_token_expires
-    )
+    access_token = create_access_token(data={"sub": user_id}, expires_delta=access_token_expires)
     
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "user": {
-            "id": user_id,
-            "username": user.username,
-            "email": user.email,
-            "role": "user"
-        }
+        "user": user_to_public_dict(user_obj)
     }
 
 
 @app.post("/api/auth/login", response_model=Token)
-async def login(user: UserLogin):
-    await ensure_db_connection()
-    db_user = await db.users.find_one({"username": user.username})
-    if not db_user or not verify_password(user.password, db_user["password_hash"]):
+async def login(user: UserLogin, session: AsyncSession = Depends(get_session)) -> Dict[str, Any]:
+    await ensure_db_connection(session)
+    result = await session.execute(select(User).where(User.username == user.username))
+    db_user = result.scalar_one_or_none()
+    if not db_user or not verify_password(user.password, db_user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -359,398 +415,492 @@ async def login(user: UserLogin):
         )
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": db_user["id"]}, expires_delta=access_token_expires
-    )
+    access_token = create_access_token(data={"sub": db_user.id}, expires_delta=access_token_expires)
     
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "user": {
-            "id": db_user["id"],
-            "username": db_user["username"],
-            "email": db_user.get("email"),
-            "role": db_user["role"]
-        }
+        "user": user_to_public_dict(db_user)
     }
+
 
 @app.get("/api/auth/me")
-async def get_me(current_user: dict = Depends(get_current_user)):
-    return {
-        "id": current_user["id"],
-        "username": current_user["username"],
-        "email": current_user.get("email"),
-        "role": current_user["role"]
-    }
+async def get_me(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
+    return current_user
+
 
 @app.post("/api/auth/password-reset-request")
-async def request_password_reset(request: PasswordResetRequest):
-    await ensure_db_connection()
-    user = await db.users.find_one({
-        "$or": [
-            {"username": request.username_or_email},
-            {"email": request.username_or_email}
-        ]
-    })
+async def request_password_reset(
+    request: PasswordResetRequest,
+    session: AsyncSession = Depends(get_session),
+) -> Dict[str, Any]:
+    await ensure_db_connection(session)
+
+    result = await session.execute(
+        select(User).where(
+            or_(User.username == request.username_or_email, User.email == request.username_or_email)
+        )
+    )
+    user = result.scalar_one_or_none()
     
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    if user.get("email"):
+    if user.email:
         reset_code = generate_reset_code()
         reset_id = str(uuid.uuid4())
-        
-        # Store reset request
-        await db.password_resets.insert_one({
-            "id": reset_id,
-            "user_id": user["id"],
-            "code": reset_code,
-            "created_at": datetime.now().isoformat(),
-            "expires_at": (datetime.now() + timedelta(minutes=15)).isoformat(),
-            "used": False
-        })
-        
-        # Send email
-        email_sent = await send_reset_email(user["email"], reset_code)
+        expires_at = datetime.now() + timedelta(minutes=15)
+
+        reset = PasswordResetModel(
+            id=reset_id,
+            user_id=user.id,
+            code=reset_code,
+            created_at=datetime.now(),
+            expires_at=expires_at,
+            used=False,
+        )
+        session.add(reset)
+        await session.commit()
+
+        email_sent = await send_reset_email(user.email, reset_code)
         
         return {
             "message": "Reset code sent to your email",
             "has_email": True,
             "email_sent": email_sent
         }
-    else:
-        # Create admin reset request
-        reset_id = str(uuid.uuid4())
-        await db.admin_reset_requests.insert_one({
-            "id": reset_id,
-            "user_id": user["id"],
-            "username": user["username"],
-            "status": "pending",
-            "requested_at": datetime.now().isoformat()
-        })
-        
-        return {
-            "message": "Reset request sent to administrator",
-            "has_email": False
-        }
+
+    reset_id = str(uuid.uuid4())
+    admin_request = AdminResetRequest(
+        id=reset_id,
+        user_id=user.id,
+        username=user.username,
+        status="pending",
+        requested_at=datetime.now(),
+    )
+    session.add(admin_request)
+    await session.commit()
+
+    return {
+        "message": "Reset request sent to administrator",
+        "has_email": False,
+    }
 
 @app.post("/api/auth/password-reset")
-async def reset_password(reset: PasswordReset):
-    await ensure_db_connection()
-    user = await db.users.find_one({
-        "$or": [
-            {"username": reset.username_or_email},
-            {"email": reset.username_or_email}
-        ]
-    })
+async def reset_password(reset: PasswordReset, session: AsyncSession = Depends(get_session)) -> Dict[str, Any]:
+    await ensure_db_connection(session)
+
+    result = await session.execute(
+        select(User).where(or_(User.username == reset.username_or_email, User.email == reset.username_or_email))
+    )
+    user = result.scalar_one_or_none()
     
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    reset_request = await db.password_resets.find_one({
-        "user_id": user["id"],
-        "code": reset.reset_code,
-        "used": False
-    })
+    result = await session.execute(
+        select(PasswordResetModel).where(
+            PasswordResetModel.user_id == user.id,
+            PasswordResetModel.code == reset.reset_code,
+            PasswordResetModel.used.is_(False),
+        )
+    )
+    reset_request = result.scalar_one_or_none()
     
     if not reset_request:
         raise HTTPException(status_code=400, detail="Invalid reset code")
     
-    # Check expiration
-    expires_at = datetime.fromisoformat(reset_request["expires_at"])
-    if datetime.now() > expires_at:
+    if datetime.now() > reset_request.expires_at:
         raise HTTPException(status_code=400, detail="Reset code expired")
-    
-    # Update password
-    await db.users.update_one(
-        {"id": user["id"]},
-        {"$set": {"password_hash": get_password_hash(reset.new_password)}}
-    )
-    
-    # Mark reset as used
-    await db.password_resets.update_one(
-        {"id": reset_request["id"]},
-        {"$set": {"used": True}}
-    )
+
+    user.password_hash = get_password_hash(reset.new_password)
+    reset_request.used = True
+    await session.commit()
     
     return {"message": "Password reset successful"}
 
-# Projects Endpoints
+
 @app.get("/api/projects")
-async def get_projects(current_user: dict = Depends(get_current_user)):
-    projects = []
-    async for project in db.projects.find():
-        project.pop("_id", None)
-        projects.append(project)
+async def get_projects(
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> List[Dict[str, Any]]:
+    await ensure_db_connection(session)
+
+    result = await session.execute(select(Project))
+    projects = [project_to_dict(project) for project in result.scalars().all()]
     return projects
 
+
 @app.get("/api/projects/{project_id}")
-async def get_project(project_id: str, current_user: dict = Depends(get_current_user)):
-    project = await db.projects.find_one({"id": project_id})
+async def get_project(
+    project_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> Dict[str, Any]:
+    await ensure_db_connection(session)
+
+    project = await session.get(Project, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    project.pop("_id", None)
 
-    files = []
-    async for file in db.files.find({"project_id": project_id}):
-        file.pop("_id", None)
-        files.append(file)
-    
-    project["files"] = files
-    return project
+    result = await session.execute(select(FileModel).where(FileModel.project_id == project_id))
+    files = [file_to_dict(file) for file in result.scalars().all()]
+
+    project_data = project_to_dict(project)
+    project_data["files"] = files
+    return project_data
+
+
 
 @app.post("/api/projects")
-async def create_project(project: ProjectCreate, current_user: dict = Depends(get_current_admin)):
+async def create_project(
+    project: ProjectCreate,
+    current_user: Dict[str, Any] = Depends(get_current_admin),
+    session: AsyncSession = Depends(get_session),
+) -> Dict[str, Any]:
+    await ensure_db_connection(session)
     project_id = str(uuid.uuid4())
-    project_dict = {
-        "id": project_id,
-        "name": project.name,
-        "description": project.description,
-        "created_by": current_user["id"],
-        "created_at": datetime.now().isoformat(),
-    }
-    
-    await db.projects.insert_one(project_dict)
-    project_dict.pop("_id", None)
-    return project_dict
+    project_obj = Project(
+        id=project_id,
+        name=project.name,
+        description=project.description,
+        created_by=current_user["id"],
+        created_at=datetime.now(),
+    )
+    session.add(project_obj)
+    await session.commit()
+
+    return project_to_dict(project_obj)
+
+
 
 @app.put("/api/projects/{project_id}")
-async def update_project(project_id: str, project: ProjectUpdate, current_user: dict = Depends(get_current_admin)):
+async def update_project(
+    project_id: str,
+    project: ProjectUpdate,
+    current_user: Dict[str, Any] = Depends(get_current_admin),
+    session: AsyncSession = Depends(get_session),
+) -> Dict[str, Any]:
+    await ensure_db_connection(session)
+
+    project_obj = await session.get(Project, project_id)
+    if not project_obj:
+        raise HTTPException(status_code=404, detail="Project not found")
     update_data = {k: v for k, v in project.dict().items() if v is not None}
     if not update_data:
         raise HTTPException(status_code=400, detail="No fields to update")
-    
-    result = await db.projects.update_one(
-        {"id": project_id},
-        {"$set": update_data}
-    )
-    
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Project not found")
-    
-    updated_project = await db.projects.find_one({"id": project_id})
-    updated_project.pop("_id", None)
-    return updated_project
+
+    for key, value in update_data.items():
+        setattr(project_obj, key, value)
+
+    await session.commit()
+    await session.refresh(project_obj)
+
+    return project_to_dict(project_obj)
+
 
 @app.delete("/api/projects/{project_id}")
-async def delete_project(project_id: str, current_user: dict = Depends(get_current_admin)):
-    result = await db.projects.delete_one({"id": project_id})
-    if result.deleted_count == 0:
+async def delete_project(
+    project_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_admin),
+    session: AsyncSession = Depends(get_session),
+) -> Dict[str, str]:
+    await ensure_db_connection(session)
+
+    project_obj = await session.get(Project, project_id)
+    if not project_obj:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    await db.files.delete_many({"project_id": project_id})
+    await session.execute(delete(FileModel).where(FileModel.project_id == project_id))
+    await session.delete(project_obj)
+    await session.commit()
     
     return {"message": "Project deleted"}
 
 
 @app.post("/api/files")
-async def create_file(file: FileCreate, current_user: dict = Depends(get_current_admin)):
+async def create_file(
+    file: FileCreate,
+    current_user: Dict[str, Any] = Depends(get_current_admin),
+    session: AsyncSession = Depends(get_session),
+) -> Dict[str, Any]:
+    await ensure_db_connection(session)
+
+    project_obj = await session.get(Project, file.project_id)
+    if not project_obj:
+        raise HTTPException(status_code=404, detail="Project not found")
+
     file_id = str(uuid.uuid4())
-    file_dict = {
-        "id": file_id,
-        "project_id": file.project_id,
-        "name": file.name,
-        "content": file.content,
-        "file_type": file.file_type,
-        "created_at": datetime.now().isoformat(),
-        "updated_at": datetime.now().isoformat(),
-    }
-    
-    await db.files.insert_one(file_dict)
-    file_dict.pop("_id", None)
-    return file_dict
+    file_obj = FileModel(
+        id=file_id,
+        project_id=file.project_id,
+        name=file.name,
+        content=file.content,
+        file_type=file.file_type,
+        is_binary=False,
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+    )
+    session.add(file_obj)
+    await session.commit()
+
+    return file_to_dict(file_obj)
+
 
 @app.post("/api/files/upload")
 async def upload_file(
     project_id: str = Form(...),
     file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_admin)
-):
+        current_user: Dict[str, Any] = Depends(get_current_admin),
+        session: AsyncSession = Depends(get_session),
+) -> Dict[str, Any]:
+    await ensure_db_connection(session)
     content = await file.read()
+    content = await file.read()
+    file_type = file.filename.split(".")[-1] if "." in file.filename else "txt"
 
-    file_type = file.filename.split('.')[-1] if '.' in file.filename else 'txt'
-
-    if file_type in ['png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'avi', 'mov', 'webm', 'ico']:
-        content_str = base64.b64encode(content).decode('utf-8')
+    if file_type in [
+        "png",
+        "jpg",
+        "jpeg",
+        "gif",
+        "webp",
+        "mp4",
+        "avi",
+        "mov",
+        "webm",
+        "ico",
+    ]:
+        content_str = base64.b64encode(content).decode("utf-8")
         is_binary = True
     else:
         try:
-            content_str = content.decode('utf-8')
+            content_str = content.decode("utf-8")
             is_binary = False
-        except:
-            content_str = base64.b64encode(content).decode('utf-8')
+        except UnicodeDecodeError:
+            content_str = base64.b64encode(content).decode("utf-8")
             is_binary = True
     
     file_id = str(uuid.uuid4())
-    file_dict = {
-        "id": file_id,
-        "project_id": project_id,
-        "name": file.filename,
-        "content": content_str,
-        "file_type": file_type,
-        "is_binary": is_binary,
-        "created_at": datetime.now().isoformat(),
-        "updated_at": datetime.now().isoformat(),
-    }
-    
-    await db.files.insert_one(file_dict)
-    file_dict.pop("_id", None)
-    return file_dict
+    now = datetime.now()
+    file_obj = FileModel(
+        id=file_id,
+        project_id=project_id,
+        name=file.filename,
+        content=content_str,
+        file_type=file_type,
+        is_binary=is_binary,
+        created_at=now,
+        updated_at=now,
+    )
+    session.add(file_obj)
+    await session.commit()
+
+    return file_to_dict(file_obj)
 
 
 @app.get("/api/files/{file_id}")
-async def get_file(file_id: str, current_user: dict = Depends(get_current_user)):
-    file = await db.files.find_one({"id": file_id})
-    if not file:
+async def get_file(
+    file_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> Dict[str, Any]:
+    await ensure_db_connection(session)
+
+    file_obj = await session.get(FileModel, file_id)
+    if not file_obj:
         raise HTTPException(status_code=404, detail="File not found")
-    file.pop("_id", None)
-    return file
+    return file_to_dict(file_obj)
 
 
 @app.put("/api/files/{file_id}")
-async def update_file(file_id: str, file: FileUpdate, current_user: dict = Depends(get_current_admin)):
+async def update_file(
+    file_id: str,
+    file: FileUpdate,
+    current_user: Dict[str, Any] = Depends(get_current_admin),
+    session: AsyncSession = Depends(get_session),
+) -> Dict[str, Any]:
+    await ensure_db_connection(session)
+
+    file_obj = await session.get(FileModel, file_id)
+    if not file_obj:
+        raise HTTPException(status_code=404, detail="File not found")
+
     update_data = {k: v for k, v in file.dict().items() if v is not None}
     if not update_data:
         raise HTTPException(status_code=400, detail="No fields to update")
-    
-    update_data["updated_at"] = datetime.now().isoformat()
-    
-    result = await db.files.update_one(
-        {"id": file_id},
-        {"$set": update_data}
-    )
-    
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="File not found")
-    
-    updated_file = await db.files.find_one({"id": file_id})
-    updated_file.pop("_id", None)
-    return updated_file
+
+    for key, value in update_data.items():
+        setattr(file_obj, key, value)
+    file_obj.updated_at = datetime.now()
+
+    await session.commit()
+    await session.refresh(file_obj)
+
+    return file_to_dict(file_obj)
 
 
 @app.delete("/api/files/{file_id}")
-async def delete_file(file_id: str, current_user: dict = Depends(get_current_admin)):
-    result = await db.files.delete_one({"id": file_id})
-    if result.deleted_count == 0:
+async def delete_file(
+    file_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_admin),
+    session: AsyncSession = Depends(get_session),
+) -> Dict[str, str]:
+    await ensure_db_connection(session)
+
+    file_obj = await session.get(FileModel, file_id)
+    if not file_obj:
         raise HTTPException(status_code=404, detail="File not found")
+
+    await session.delete(file_obj)
+    await session.commit()
+
     return {"message": "File deleted"}
 
 
 @app.get("/api/admin/users")
-async def get_users(current_user: dict = Depends(get_current_admin)):
-    users = []
-    async for user in db.users.find():
-        user.pop("_id", None)
-        user.pop("password_hash", None)
-        users.append(user)
-    return users
+async def get_users(
+    current_user: Dict[str, Any] = Depends(get_current_admin),
+    session: AsyncSession = Depends(get_session),
+) -> List[Dict[str, Any]]:
+    await ensure_db_connection(session)
+
+    result = await session.execute(select(User))
+    return [user_to_public_dict(user) for user in result.scalars().all()]
 
 
 @app.get("/api/admin/reset-requests")
-async def get_reset_requests(current_user: dict = Depends(get_current_admin)):
+async def get_reset_requests(
+    current_user: Dict[str, Any] = Depends(get_current_admin),
+    session: AsyncSession = Depends(get_session),
+) -> List[Dict[str, Any]]:
+    await ensure_db_connection(session)
+
+    result = await session.execute(
+        select(AdminResetRequest).where(AdminResetRequest.status == "pending")
+    )
     requests = []
-    async for request in db.admin_reset_requests.find({"status": "pending"}):
-        request.pop("_id", None)
-        requests.append(request)
+    for reset in result.scalars().all():
+        requests.append({
+                "id": reset.id,
+                "user_id": reset.user_id,
+                "username": reset.username,
+                "status": reset.status,
+                "requested_at": _to_iso(reset.requested_at),
+                "completed_at": _to_iso(reset.completed_at)
+        })
     return requests
 
 
 @app.post("/api/admin/reset-password/{user_id}")
-async def admin_reset_password(user_id: str, current_user: dict = Depends(get_current_admin)):
-    new_password = "qwerty123"
-    result = await db.users.update_one(
-        {"id": user_id},
-        {"$set": {"password_hash": get_password_hash(new_password)}}
-    )
-    
-    if result.matched_count == 0:
+async def admin_reset_password(
+    user_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_admin),
+    session: AsyncSession = Depends(get_session),
+) -> Dict[str, str]:
+    await ensure_db_connection(session)
+
+    user_obj = await session.get(User, user_id)
+    if not user_obj:
         raise HTTPException(status_code=404, detail="User not found")
 
-    await db.admin_reset_requests.update_many(
-        {"user_id": user_id, "status": "pending"},
-        {"$set": {"status": "completed", "completed_at": datetime.now().isoformat()}}
+    new_password = "qwerty123"
+    user_obj.password_hash = get_password_hash(new_password)
+
+    await session.execute(
+        update(AdminResetRequest)
+        .where(AdminResetRequest.user_id == user_id, AdminResetRequest.status == "pending")
+        .values(status="completed", completed_at=datetime.now())
     )
+
+    await session.commit()
     
     return {"message": f"Password reset to {new_password}"}
 
 
 @app.put("/api/admin/users/{user_id}/role")
-async def update_user_role(user_id: str, role: str, current_user: dict = Depends(get_current_admin)):
+async def update_user_role(
+    user_id: str,
+    role: str,
+    current_user: Dict[str, Any] = Depends(get_current_admin),
+    session: AsyncSession = Depends(get_session),
+) -> Dict[str, str]:
+    await ensure_db_connection(session)
     if role not in ["user", "admin"]:
         raise HTTPException(status_code=400, detail="Invalid role")
-    
-    result = await db.users.update_one(
-        {"id": user_id},
-        {"$set": {"role": role}}
-    )
-    
-    if result.matched_count == 0:
+
+    user_obj = await session.get(User, user_id)
+    if not user_obj:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
+    user_obj.role = role
+    await session.commit()
+
     return {"message": "Role updated"}
 
 
 @app.websocket("/api/ws/chat")
-async def websocket_chat(websocket: WebSocket, token: str):
+async def websocket_chat(websocket: WebSocket, token: str) -> None:
     await websocket.accept()
+    user = None
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("sub")
-        user = await db.users.find_one({"id": user_id})
         
-        if not user:
+        if not user_id:
             await websocket.close(code=1008)
             return
         
-        await manager.connect(websocket, user_id, user["username"])
+        async with async_session_factory() as db_session:
+            user_result = await db_session.execute(select(User).where(User.id == user_id))
+            user = user_result.scalar_one_or_none()
+            if not user:
+                await websocket.close(code=1008)
+                return
 
-        messages = []
-        async for msg in db.chat_messages.find().sort("timestamp", -1).limit(50):
-            msg.pop("_id", None)
-            messages.append(msg)
-        
-        messages.reverse()
-        await websocket.send_json({"type": "history", "messages": messages})
+            await manager.connect(websocket, user_id, user.username)
 
-        await manager.broadcast({
-            "type": "user_joined",
-            "username": user["username"]
-        })
-        
-        while True:
-            data = await websocket.receive_json()
-            message_id = str(uuid.uuid4())
-            message = {
-                "id": message_id,
-                "user_id": user_id,
-                "username": user["username"],
-                "message": data["message"],
-                "timestamp": datetime.now().isoformat()
-            }
+            history_result = await db_session.execute(
+                select(ChatMessage).order_by(ChatMessage.timestamp.desc()).limit(50)
+            )
+            messages = [chat_message_to_dict(msg) for msg in history_result.scalars().all()][::-1]
+            await websocket.send_json({"type": "history", "messages": messages})
 
-            await db.chat_messages.insert_one(message.copy())
-            message.pop("_id", None)
+            await manager.broadcast({"type": "user_joined", "username": user.username})
 
-            await manager.broadcast({
-                "type": "message",
-                "data": message
-            })
+            while True:
+                data = await websocket.receive_json()
+                message_id = str(uuid.uuid4())
+                chat_message = ChatMessage(
+                    id=message_id,
+                    user_id=user_id,
+                    username=user.username,
+                    message=data.get("message", ""),
+                    timestamp=datetime.now(),
+                )
+                db_session.add(chat_message)
+                await db_session.commit()
+
+                await manager.broadcast({"type": "message", "data": chat_message_to_dict(chat_message)})
             
     except WebSocketDisconnect:
         manager.disconnect(websocket)
-        await manager.broadcast({
-            "type": "user_left",
-            "username": user["username"]
-        })
-    except Exception as e:
-        print(f"WebSocket error: {e}")
+        if user:
+            await manager.broadcast({"type": "user_left", "username": user.username})
+    except Exception as exc:  # pragma: no cover - logging for runtime issues
+        print(f"WebSocket error: {exc}")
         manager.disconnect(websocket)
+        if user:
+            await manager.broadcast({"type": "user_left", "username": user.username})
+        await websocket.close(code=1011)
 
 
 @app.get("/api/health")
-async def health():
+async def health() -> Dict[str, str]:
     return {"status": "ok"}
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8001)
