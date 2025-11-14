@@ -9,7 +9,6 @@ function Home() {
   const [likesCount, setLikesCount] = useState(0);
 
   useEffect(() => {
-    // Simulate views/likes (можно позже подключить к API)
     setViewsCount(Math.floor(Math.random() * 1000));
     setLikesCount(Math.floor(Math.random() * 500));
   }, []);
@@ -17,21 +16,20 @@ function Home() {
   const calculateBirthdayCountdown = () => {
     const today = new Date();
     const currentYear = today.getFullYear();
-    let birthday = new Date(currentYear, 2, 30); // 30 марта
+    let birthday = new Date(currentYear, 10, 8);
 
     if (today > birthday) {
-      birthday = new Date(currentYear + 1, 2, 30);
+      birthday = new Date(currentYear + 1, 10, 8);
     }
 
     const diff = birthday - today;
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     
-    return days === 0 ? '🎉 Сегодня!' : `через ${days} дней (30 марта)`;
+    return days === 0 ? '🎉 Сегодня!' : `через ${days} дней (8 октября)`;
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1e2a4a] via-[#2c3e50] to-[#1e2a4a] flex flex-col items-center py-8 px-4">
-      {/* Header для неавторизованных пользователей */}
       {!user && (
         <div className="w-full max-w-6xl mb-8 flex justify-end gap-4">
           <Link 
@@ -49,9 +47,7 @@ function Home() {
         </div>
       )}
 
-      {/* Карточка с информацией */}
       <div className="w-full max-w-xl mb-8 bg-gradient-to-b from-[#5865F2] to-[#36393f] rounded-3xl shadow-2xl overflow-hidden border-2 border-[#7289DA] transform transition-all duration-300 hover:-translate-y-2 animate-fade-in">
-        {/* Баннер */}
         <div className="h-48 relative overflow-hidden">
           <div 
             className="w-full h-full bg-cover bg-center"
@@ -59,7 +55,6 @@ function Home() {
           />
         </div>
 
-        {/* Аватар и имя */}
         <div className="relative -mt-20 text-center px-8 pb-6">
           <div className="inline-block relative mb-4">
             <img 
@@ -84,9 +79,7 @@ function Home() {
           </div>
         </div>
 
-        {/* Контент */}
         <div className="bg-[#2f3136] px-8 py-6 space-y-6">
-          {/* Обо мне */}
           <div className="animate-fade-in-delay">
             <h2 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
               <i className="fas fa-heart text-[#d23369]"></i>
@@ -103,7 +96,6 @@ function Home() {
             </p>
           </div>
 
-          {/* Увлечения */}
           <div className="animate-fade-in-delay-2">
             <h2 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
               <i className="fas fa-star text-[#faa61a]"></i>
@@ -121,7 +113,6 @@ function Home() {
             </div>
           </div>
 
-          {/* Контакты */}
           <div className="animate-fade-in-delay-3">
             <h2 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
               <i className="fas fa-envelope text-[#43b581]"></i>
@@ -139,7 +130,6 @@ function Home() {
             </div>
           </div>
 
-          {/* Социальные сети */}
           <div className="flex justify-center gap-4 pt-4">
             <a 
               href="https://vk.com/remod3" 
@@ -188,7 +178,6 @@ function Home() {
             </a>
           </div>
 
-          {/* Счетчики */}
           <div className="flex justify-center gap-8 pt-4 text-[#7289DA]">
             <div className="flex items-center gap-2">
               <i className="fas fa-eye"></i>
@@ -202,10 +191,8 @@ function Home() {
         </div>
       </div>
 
-      {/* Вкладки для авторизованных пользователей */}
       {user && (
         <div className="w-full max-w-6xl">
-          {/* Tabs */}
           <div className="flex gap-4 mb-6 border-b border-gray-700">
             <button
               onClick={() => setActiveTab('projects')}
@@ -231,7 +218,6 @@ function Home() {
             </button>
           </div>
 
-          {/* Tab content */}
           <div className="bg-[#2f3136] rounded-xl p-6 shadow-xl">
             {activeTab === 'projects' && (
               <div className="text-center">
