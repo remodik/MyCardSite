@@ -20,7 +20,7 @@ export default function Chat() {
     useEffect(() => {
         if (!token) return;
 
-        let websocketBase = API_URL;
+        let websocketBase;
         try {
             const parsedUrl = new URL(API_URL);
             const wsProtocol = parsedUrl.protocol === 'https:' ? 'wss:' : 'ws:';
