@@ -32,7 +32,7 @@ export default function Projects() {
       await axios.post(`${API_URL}/api/projects`, newProject);
       setShowCreateModal(false);
       setNewProject({ name: '', description: '' });
-      fetchProjects();
+      await fetchProjects();
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to create project');
     }
@@ -43,7 +43,7 @@ export default function Projects() {
 
     try {
       await axios.delete(`${API_URL}/api/projects/${projectId}`);
-      fetchProjects();
+      await fetchProjects();
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to delete project');
     }
