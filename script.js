@@ -53,16 +53,31 @@ function formatRelativeTime(seconds) {
 }
 
 function getLocalLikes() {
-    return localStorage.getItem('pageLikes') ? parseInt(localStorage.getItem('pageLikes')) : 0;
+    try {
+        const likes = localStorage.getItem('pageLikes');
+        return likes ? parseInt(likes) : 0;
+    } catch (error) {
+        console.warn('localStorage недоступен:', error);
+        return 0;
+    }
 }
 
 function setLocalLikes(count) {
-    localStorage.setItem('pageLikes', count.toString());
-    localStorage.setItem('hasLiked', 'true');
+    try {
+        localStorage.setItem('pageLikes', count.toString());
+        localStorage.setItem('hasLiked', 'true');
+    } catch (error) {
+        console.warn('Не удалось сохранить данные:', error);
+    }
 }
 
 function hasLikedLocally() {
-    return localStorage.getItem('hasLiked') === 'true';
+    try {
+        return localStorage.getItem('hasLiked') === 'true';
+    } catch (error) {
+        console.warn('localStorage недоступен:', error);
+        return false;
+    }
 }
 
 async function getStats() {
@@ -77,8 +92,10 @@ async function getStats() {
         if (likesEl) likesEl.textContent = data.likes || 0;
 
         if (data.hasLiked || hasLikedLocally()) {
-            document.querySelector('#likesContainer i').className = 'fas fa-heart';
-            document.querySelector('#likesContainer').style.color = '#e74c3c';
+            const iconEl = document.querySelector('#likesContainer i');
+            const containerEl = document.querySelector('#likesContainer');
+            if (iconEl) iconEl.className = 'fas fa-heart';
+            if (containerEl) containerEl.style.color = '#e74c3c';
         }
     } catch (err) {
         console.error("Ошибка получения данных, используем локальные значения:", err);
@@ -89,8 +106,10 @@ async function getStats() {
         if (likesEl) likesEl.textContent = getLocalLikes();
 
         if (hasLikedLocally()) {
-            document.querySelector('#likesContainer i').className = 'fas fa-heart';
-            document.querySelector('#likesContainer').style.color = '#e74c3c';
+            const iconEl = document.querySelector('#likesContainer i');
+            const containerEl = document.querySelector('#likesContainer');
+            if (iconEl) iconEl.className = 'fas fa-heart';
+            if (containerEl) containerEl.style.color = '#e74c3c';
         }
     }
 }
@@ -111,9 +130,13 @@ async function sendLike() {
         const result = await response.json();
 
         if (result.success) {
-            document.querySelector('#likesContainer i').className = 'fas fa-heart';
-            document.querySelector('#likesContainer').style.color = '#e74c3c';
-            document.getElementById('likesCount').textContent = result.likes;
+            const iconEl = document.querySelector('#likesContainer i');
+            const containerEl = document.querySelector('#likesContainer');
+            const likesCountEl = document.getElementById('likesCount');
+
+            if (iconEl) iconEl.className = 'fas fa-heart';
+            if (containerEl) containerEl.style.color = '#e74c3c';
+            if (likesCountEl) likesCountEl.textContent = result.likes;
 
             setLocalLikes(result.likes);
 
@@ -122,9 +145,13 @@ async function sendLike() {
             const currentLikes = getLocalLikes() + 1;
             setLocalLikes(currentLikes);
 
-            document.querySelector('#likesContainer i').className = 'fas fa-heart';
-            document.querySelector('#likesContainer').style.color = '#e74c3c';
-            document.getElementById('likesCount').textContent = currentLikes;
+            const iconEl = document.querySelector('#likesContainer i');
+            const containerEl = document.querySelector('#likesContainer');
+            const likesCountEl = document.getElementById('likesCount');
+
+            if (iconEl) iconEl.className = 'fas fa-heart';
+            if (containerEl) containerEl.style.color = '#e74c3c';
+            if (likesCountEl) likesCountEl.textContent = currentLikes;
 
             alert('Спасибо за лайк! ❤️');
         }
@@ -133,9 +160,13 @@ async function sendLike() {
         const currentLikes = getLocalLikes() + 1;
         setLocalLikes(currentLikes);
 
-        document.querySelector('#likesContainer i').className = 'fas fa-heart';
-        document.querySelector('#likesContainer').style.color = '#e74c3c';
-        document.getElementById('likesCount').textContent = currentLikes;
+        const iconEl = document.querySelector('#likesContainer i');
+        const containerEl = document.querySelector('#likesContainer');
+        const likesCountEl = document.getElementById('likesCount');
+
+        if (iconEl) iconEl.className = 'fas fa-heart';
+        if (containerEl) containerEl.style.color = '#e74c3c';
+        if (likesCountEl) likesCountEl.textContent = currentLikes;
 
         alert('Спасибо за лайк! ❤️');
     }
@@ -146,5 +177,8 @@ window.addEventListener("DOMContentLoaded", () => {
     setInterval(updateBirthdayCountdown, 60000);
     getStats();
 
-    document.getElementById('likesContainer').addEventListener('click', sendLike);
+    const likesContainer = document.getElementById('likesContainer');
+    if (likesContainer) {
+        likesContainer.addEventListener('click', sendLike);
+    }
 });
