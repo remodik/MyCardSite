@@ -3,8 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
+import remarkEmoji from 'remark-emoji';
+import remarkMath from 'remark-math';
+import rehypeRaw from 'rehype-raw';
+import rehypeKatex from 'rehype-katex';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import 'katex/dist/katex.min.css';
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -136,6 +143,16 @@ export default function ProjectDetail() {
       return (
         <div className="prose dark:prose-invert max-w-none">
           <ReactMarkdown
+            remarkPlugins={[
+              remarkGfm,           // GitHub Flavored Markdown (tables, strikethrough, task lists)
+              remarkBreaks,        // Soft line breaks
+              remarkEmoji,         // Emoji support :smile:
+              remarkMath,          // Math formulas $E=mc^2$
+            ]}
+            rehypePlugins={[
+              rehypeRaw,           // Allow HTML in markdown
+              rehypeKatex,         // Render math with KaTeX
+            ]}
             components={{
               code({ node, inline, className, children, ...props }) {
                 const match = /language-(\w+)/.exec(className || '');
@@ -144,6 +161,7 @@ export default function ProjectDetail() {
                     style={vscDarkPlus}
                     language={match[1]}
                     PreTag="div"
+                    showLineNumbers
                     {...props}
                   >
                     {String(children).replace(/\n$/, '')}
@@ -152,6 +170,31 @@ export default function ProjectDetail() {
                   <code className={className} {...props}>
                     {children}
                   </code>
+                );
+              },
+              // Улучшенная поддержка task lists
+              input({ node, checked, ...props }) {
+                return (
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    disabled
+                    className="mr-2"
+                    {...props}
+                  />
+                );
+              },
+              // Поддержка автоссылок
+              a({ node, href, children, ...props }) {
+                return (
+                  <a 
+                    href={href} 
+                    target={href?.startsWith('http') ? '_blank' : undefined}
+                    rel={href?.startsWith('http') ? 'noopener noreferrer' : undefined}
+                    {...props}
+                  >
+                    {children}
+                  </a>
                 );
               },
             }}
