@@ -39,7 +39,7 @@ export default function AdminPanel() {
     try {
       await axios.post(`${API_URL}/api/admin/reset-password/${userId}`);
       alert('Password reset to qwerty123');
-      fetchData();
+      await fetchData();
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to reset password');
     }
@@ -57,7 +57,7 @@ export default function AdminPanel() {
         null,
         { params: { role: newRole } }
       );
-      fetchData();
+      await fetchData();
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to update role');
     }
