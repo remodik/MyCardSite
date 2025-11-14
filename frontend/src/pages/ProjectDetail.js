@@ -1,17 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import remarkBreaks from 'remark-breaks';
-import remarkEmoji from 'remark-emoji';
-import remarkMath from 'remark-math';
-import rehypeRaw from 'rehype-raw';
-import rehypeKatex from 'rehype-katex';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import 'katex/dist/katex.min.css';
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -28,11 +21,7 @@ export default function ProjectDetail() {
   const [editMode, setEditMode] = useState(false);
   const [editContent, setEditContent] = useState('');
 
-  useEffect(() => {
-    fetchProject();
-  }, [id]);
-
-  const fetchProject = async () => {
+  const fetchProject = useCallback(async () => {
     try {
       const response = await axios.get(`${API_URL}/api/projects/${id}`);
       setProject(response.data);
@@ -44,7 +33,48 @@ export default function ProjectDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_URL, id]);
+
+  useEffect(() => {
+    fetchProject();
+  }, [fetchProject]);
+
+  const markdownComponents = useMemo(
+    () => ({
+      code({ node, inline, className, children, ...props }) {
+        const match = /language-(\w+)/.exec(className || '');
+        return !inline && match ? (
+          <SyntaxHighlighter
+            style={vscDarkPlus}
+            language={match[1]}
+            PreTag="div"
+            showLineNumbers
+            {...props}
+          >
+            {String(children).replace(/\n$/, '')}
+          </SyntaxHighlighter>
+        ) : (
+          <code className={className} {...props}>
+            {children}
+          </code>
+        );
+      },
+        a({ href, children, ...props }) {
+        const isExternal = href?.startsWith('http');
+        return (
+          <a
+            href={href}
+            target={isExternal ? '_blank' : undefined}
+            rel={isExternal ? 'noopener noreferrer' : undefined}
+            {...props}
+          >
+            {children}
+          </a>
+        );
+      },
+    }),
+    []
+  );
 
   const handleCreateFile = async (e) => {
     e.preventDefault();
@@ -55,7 +85,7 @@ export default function ProjectDetail() {
       });
       setShowCreateFileModal(false);
       setNewFile({ name: '', content: '', file_type: 'txt' });
-      fetchProject();
+      await fetchProject();
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to create file');
     }
@@ -77,7 +107,7 @@ export default function ProjectDetail() {
       });
       setShowUploadModal(false);
       setUploadFile(null);
-      fetchProject();
+      await fetchProject();
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to upload file');
     }
@@ -91,7 +121,7 @@ export default function ProjectDetail() {
       if (selectedFile?.id === fileId) {
         setSelectedFile(null);
       }
-      fetchProject();
+      await fetchProject();
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to delete file');
     }
@@ -108,7 +138,7 @@ export default function ProjectDetail() {
         content: editContent,
       });
       setEditMode(false);
-      fetchProject();
+      await fetchProject();
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to save file');
     }
@@ -142,65 +172,7 @@ export default function ProjectDetail() {
     if (file.file_type === 'md') {
       return (
         <div className="prose dark:prose-invert max-w-none">
-          <ReactMarkdown
-            remarkPlugins={[
-              remarkGfm,           // GitHub Flavored Markdown (tables, strikethrough, task lists)
-              remarkBreaks,        // Soft line breaks
-              remarkEmoji,         // Emoji support :smile:
-              remarkMath,          // Math formulas $E=mc^2$
-            ]}
-            rehypePlugins={[
-              rehypeRaw,           // Allow HTML in markdown
-              rehypeKatex,         // Render math with KaTeX
-            ]}
-            components={{
-              code({ node, inline, className, children, ...props }) {
-                const match = /language-(\w+)/.exec(className || '');
-                return !inline && match ? (
-                  <SyntaxHighlighter
-                    style={vscDarkPlus}
-                    language={match[1]}
-                    PreTag="div"
-                    showLineNumbers
-                    {...props}
-                  >
-                    {String(children).replace(/\n$/, '')}
-                  </SyntaxHighlighter>
-                ) : (
-                  <code className={className} {...props}>
-                    {children}
-                  </code>
-                );
-              },
-              // Улучшенная поддержка task lists
-              input({ node, checked, ...props }) {
-                return (
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    disabled
-                    className="mr-2"
-                    {...props}
-                  />
-                );
-              },
-              // Поддержка автоссылок
-              a({ node, href, children, ...props }) {
-                return (
-                  <a 
-                    href={href} 
-                    target={href?.startsWith('http') ? '_blank' : undefined}
-                    rel={href?.startsWith('http') ? 'noopener noreferrer' : undefined}
-                    {...props}
-                  >
-                    {children}
-                  </a>
-                );
-              },
-            }}
-          >
-            {file.content}
-          </ReactMarkdown>
+          <ReactMarkdown components={markdownComponents}>{file.content}</ReactMarkdown>
         </div>
       );
     }
