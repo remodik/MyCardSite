@@ -11,12 +11,46 @@ export const useAuth = () => {
   return context;
 };
 
+const getStoredToken = () => {
+    try {
+        return localStorage.getItem('token');
+    } catch (error) {
+        console.error('localStorage недоступен:', error);
+        return null;
+    }
+};
+
+const setStoredToken = (token) => {
+    try {
+        localStorage.setItem('token', token);
+    } catch (error) {
+        console.error('Не удалось сохранить токен:', error);
+    }
+};
+
+const removeStoredToken = () => {
+    try {
+        localStorage.removeItem('token');
+    } catch (error) {
+        console.error('Не удалось удалить токен:', error);
+    }
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+
+    useEffect(() => {
+        const storedToken = getStoredToken();
+        if (storedToken) {
+            setToken(storedToken);
+        } else {
+            setLoading(false);
+        }
+    }, []);
 
   useEffect(() => {
     if (token) {
@@ -48,7 +82,7 @@ export const AuthProvider = ({ children }) => {
       const { access_token, user: userData } = response.data;
       setToken(access_token);
       setUser(userData);
-      localStorage.setItem('token', access_token);
+      setStoredToken(access_token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       return { success: true };
     } catch (error) {
@@ -69,7 +103,7 @@ export const AuthProvider = ({ children }) => {
       const { access_token, user: userData } = response.data;
       setToken(access_token);
       setUser(userData);
-      localStorage.setItem('token', access_token);
+      setStoredToken(access_token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       return { success: true };
     } catch (error) {
@@ -83,7 +117,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setToken(null);
     setUser(null);
-    localStorage.removeItem('token');
+    removeStoredToken();
     delete axios.defaults.headers.common['Authorization'];
   };
 
