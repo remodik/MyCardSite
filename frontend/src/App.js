@@ -10,6 +10,7 @@ import ProjectDetail from './pages/ProjectDetail';
 import Chat from './pages/Chat';
 import AdminPanel from './pages/AdminPanel';
 import PasswordReset from './pages/PasswordReset';
+import Home from './pages/Home';
 
 function App() {
   const [darkMode, setDarkMode] = useState(true);
@@ -76,7 +77,7 @@ function AppRoutes({ darkMode, setDarkMode }) {
           path="/admin"
           element={user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/projects" />}
         />
-        <Route path="/" element={<Navigate to="/projects" />} />
+        <Route path="/" element={<Home />} />
       </Routes>
     </>
   );

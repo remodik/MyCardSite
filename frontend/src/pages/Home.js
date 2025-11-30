@@ -1,31 +1,175 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+
+const BIRTHDAY_TIMESTAMP = 1791406800;
+
+const pluralRules = new Intl.PluralRules('ru');
+
+const timeForms = {
+  год: ['год', 'года', 'лет'],
+  месяц: ['месяц', 'месяца', 'месяцев'],
+  неделя: ['неделя', 'недели', 'недель'],
+  день: ['день', 'дня', 'дней'],
+  час: ['час', 'часа', 'часов'],
+  минута: ['минута', 'минуты', 'минут'],
+};
+
+const formatRelativeTime = (seconds) => {
+  if (seconds <= 0) {
+    return 'сегодня! 🎉';
+  }
+
+  const intervals = {
+    год: 31536000,
+    месяц: 2592000,
+    неделя: 604800,
+    день: 86400,
+    час: 3600,
+    минута: 60,
+  };
+
+  for (const [unit, secs] of Object.entries(intervals)) {
+    const count = Math.floor(seconds / secs);
+    if (count >= 1) {
+      const rule = pluralRules.select(count);
+      const forms = timeForms[unit];
+      const form = rule === 'one' ? forms[0] : rule === 'few' ? forms[1] : forms[2];
+      return `через ${count} ${form}`;
+    }
+  }
+
+  return 'скоро!';
+};
+
+const safeStorage = () => {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return window.localStorage;
+    }
+  } catch (error) {
+    return null;
+  }
+  return null;
+};
+
+const getLocalLikes = () => {
+  const storage = safeStorage();
+  if (!storage) {
+    return 0;
+  }
+
+  const likes = storage.getItem('pageLikes');
+  return likes ? parseInt(likes, 10) || 0 : 0;
+};
+
+const hasLikedLocally = () => {
+  const storage = safeStorage();
+  if (!storage) {
+    return false;
+  }
+  return storage.getItem('hasLiked') === 'true';
+};
+
+const setLocalLikes = (count) => {
+  const storage = safeStorage();
+  if (!storage) {
+    return;
+  }
+
+  const likesValue = Number.isFinite(count) ? count : 0;
+  storage.setItem('pageLikes', likesValue.toString());
+  storage.setItem('hasLiked', 'true');
+};
 
 function Home() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('projects');
   const [viewsCount, setViewsCount] = useState(0);
-  const [likesCount, setLikesCount] = useState(0);
+  const [likesCount, setLikesCount] = useState(() => getLocalLikes());
+  const [hasLiked, setHasLiked] = useState(() => hasLikedLocally());
+  const [birthdayInfo, setBirthdayInfo] = useState({
+    relativeTime: '',
+    fullDate: '',
+  });
 
-  useEffect(() => {
-    setViewsCount(Math.floor(Math.random() * 1000));
-    setLikesCount(Math.floor(Math.random() * 500));
+  const updateBirthdayCountdown = useCallback(() => {
+    const now = Math.floor(Date.now() / 1000);
+    const diff = BIRTHDAY_TIMESTAMP - now;
+    const fullDate = new Date(BIRTHDAY_TIMESTAMP * 1000).toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+
+    setBirthdayInfo({
+      relativeTime: formatRelativeTime(diff),
+      fullDate,
+    });
   }, []);
 
-  const calculateBirthdayCountdown = () => {
-    const today = new Date();
-    const currentYear = today.getFullYear();
-    let birthday = new Date(currentYear, 10, 8);
+  useEffect(() => {
+    updateBirthdayCountdown();
+    const intervalId = setInterval(updateBirthdayCountdown, 60000);
+    return () => clearInterval(intervalId);
+  }, [updateBirthdayCountdown]);
 
-    if (today > birthday) {
-      birthday = new Date(currentYear + 1, 10, 8);
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('/stats.php');
+        if (!response.ok) {
+          throw new Error('Failed to fetch stats');
+        }
+
+        const data = await response.json();
+        setViewsCount(Number(data.views) || 0);
+        const serverLikes = Number(data.likes);
+        setLikesCount(Number.isFinite(serverLikes) ? serverLikes : getLocalLikes());
+        setHasLiked(Boolean(data.hasLiked) || hasLikedLocally());
+      } catch (error) {
+        setViewsCount(0);
+        setLikesCount(getLocalLikes());
+        setHasLiked(hasLikedLocally());
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const handleLike = async () => {
+    if (hasLikedLocally()) {
+      window.alert('Вы уже поставили лайк! ❤️');
+      setHasLiked(true);
+      return;
     }
 
-    const diff = birthday - today;
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    
-    return days === 0 ? '🎉 Сегодня!' : `через ${days} дней (8 октября)`;
+    try {
+      const response = await fetch('/stats.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'like' }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error('Like request failed');
+      }
+
+      const newLikes = Number(result.likes);
+      const likesValue = Number.isFinite(newLikes) ? newLikes : likesCount + 1;
+      setLikesCount(likesValue);
+      setLocalLikes(likesValue);
+      setHasLiked(true);
+      window.alert('Спасибо за лайк! ❤️');
+    } catch (error) {
+      const fallbackLikes = likesCount + 1;
+      setLikesCount(fallbackLikes);
+      setLocalLikes(fallbackLikes);
+      setHasLiked(true);
+      window.alert('Спасибо за лайк! ❤️');
+    }
   };
 
   return (
@@ -92,7 +236,11 @@ function Home() {
               Моя цель — создать универсального Discord бота, который будет уметь всё! (Ну, или почти)
             </p>
             <p className="text-gray-300 leading-relaxed">
-              День рождения: <span className="text-[#7289DA] font-semibold">{calculateBirthdayCountdown()}</span>
+              День рождения:{' '}
+              <span className="text-[#7289DA] font-semibold">
+                {birthdayInfo.relativeTime}
+                {birthdayInfo.fullDate ? ` (${birthdayInfo.fullDate})` : ''}
+              </span>
             </p>
           </div>
 
@@ -183,13 +331,19 @@ function Home() {
               <i className="fas fa-eye"></i>
               <span>{viewsCount}</span>
             </div>
-            <div className="flex items-center gap-2 cursor-pointer hover:text-[#8899EA] transition-colors">
-              <i className="far fa-heart"></i>
+            <button
+              type="button"
+              onClick={handleLike}
+              className={`flex items-center gap-2 transition-colors ${
+                hasLiked ? 'text-[#e74c3c]' : 'hover:text-[#8899EA]'
+              }`}
+            >
+              <i className={`${hasLiked ? 'fas' : 'far'} fa-heart`}></i>
               <span>{likesCount}</span>
-            </div>
+            </button>
           </div>
         </div>
-      </div>
+        </div>
 
       {user && (
         <div className="w-full max-w-6xl">
