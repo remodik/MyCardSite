@@ -83,141 +83,130 @@ export default function PasswordReset() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-github-dark py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-            Reset your password
-          </h2>
-        </div>
+    <div className="page-shell">
+      <div className="w-full max-w-md">
+        <div className="surface-card p-8 space-y-6 animate-fade-in">
+          <div className="text-center space-y-2">
+            <h2 className="text-2xl font-bold text-white">Reset your password</h2>
+            <p className="text-slate-300 text-sm">Всё оформлено в одном ключе</p>
+          </div>
 
-        {step === 1 ? (
-          <form className="mt-8 space-y-6" onSubmit={handleRequestReset}>
-            {error && (
-              <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
-                <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
-              </div>
-            )}
-            {message && (
-              <div className="rounded-md bg-green-50 dark:bg-green-900/20 p-4">
-                <p className="text-sm text-green-800 dark:text-green-200">{message}</p>
+          {step === 1 ? (
+            <form className="space-y-5" onSubmit={handleRequestReset}>
+              {error && (
+                <div className="surface-section p-3 text-sm text-red-200 border border-red-400/40 bg-red-500/10 rounded-xl">
+                  {error}
+                </div>
+              )}
+              {message && (
+                <div className="surface-section p-3 text-sm text-green-200 border border-green-400/30 bg-green-500/10 rounded-xl space-y-1">
+                  <p>{message}</p>
                   {hasEmail && emailSent === false && (
-                  <p className="mt-2 text-xs text-green-700 dark:text-green-300">
-                    Email delivery failed. Please verify SMTP settings on the server or contact an administrator.
+                    <p className="text-xs text-green-100/80">
+                      Email delivery failed. Please verify SMTP settings on the server or contact an administrator.
+                    </p>
+                  )}
+                </div>
+              )}
+              {!hasEmail && message && (
+                <div className="surface-section p-3 text-sm text-blue-200 border border-blue-400/30 bg-blue-500/10 rounded-xl">
+                  <p>
+                    Your request was sent to an administrator. They will review and update your password manually.
                   </p>
-                )}
-              </div>
-            )}
-            {!hasEmail && message && (
-              <div className="rounded-md bg-blue-50 dark:bg-blue-900/20 p-4">
-                <p className="text-sm text-blue-800 dark:text-blue-200">
-                  Your request was sent to an administrator. They will review and update your password manually.
-                </p>
-              </div>
-            )}
-            <div>
-              <label htmlFor="usernameOrEmail" className="sr-only">
-                Username or Email
-              </label>
-              <input
-                id="usernameOrEmail"
-                name="usernameOrEmail"
-                type="text"
-                required
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-github-border placeholder-gray-500 dark:placeholder-github-textSecondary text-gray-900 dark:text-white bg-white dark:bg-github-hover rounded-md focus:outline-none focus:ring-github-blue focus:border-github-blue sm:text-sm"
-                placeholder="Username or Email"
-                value={usernameOrEmail}
-                onChange={(e) => setUsernameOrEmail(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-github-blue hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-github-blue disabled:opacity-50"
-              >
-                {loading ? 'Requesting...' : 'Request Reset'}
-              </button>
-            </div>
-
-            <div className="text-center">
-              <Link to="/login" className="text-sm font-medium text-github-blue hover:text-blue-500">
-                Back to Sign in
-              </Link>
-            </div>
-          </form>
-        ) : (
-          <form className="mt-8 space-y-6" onSubmit={handleResetPassword}>
-            {error && (
-              <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
-                <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
-              </div>
-            )}
-            {message && (
-              <div className="rounded-md bg-green-50 dark:bg-green-900/20 p-4">
-                <p className="text-sm text-green-800 dark:text-green-200">{message}</p>
-              </div>
-            )}
-            <div className="space-y-4">
+                </div>
+              )}
               <div>
-                <label htmlFor="resetCode" className="sr-only">
-                  Reset Code
+                <label htmlFor="usernameOrEmail" className="sr-only">
+                  Username or Email
                 </label>
                 <input
-                  id="resetCode"
-                  name="resetCode"
+                  id="usernameOrEmail"
+                  name="usernameOrEmail"
                   type="text"
                   required
-                  className="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-github-border placeholder-gray-500 dark:placeholder-github-textSecondary text-gray-900 dark:text-white bg-white dark:bg-github-hover rounded-md focus:outline-none focus:ring-github-blue focus:border-github-blue sm:text-sm"
-                  placeholder="Enter reset code from email"
-                  value={resetCode}
-                  onChange={(e) => setResetCode(e.target.value)}
+                  className="input-field"
+                  placeholder="Username or Email"
+                  value={usernameOrEmail}
+                  onChange={(e) => setUsernameOrEmail(e.target.value)}
                 />
               </div>
-              <div>
-                <label htmlFor="newPassword" className="sr-only">
-                  New Password
-                </label>
-                <input
-                  id="newPassword"
-                  name="newPassword"
-                  type="password"
-                  required
-                  className="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-github-border placeholder-gray-500 dark:placeholder-github-textSecondary text-gray-900 dark:text-white bg-white dark:bg-github-hover rounded-md focus:outline-none focus:ring-github-blue focus:border-github-blue sm:text-sm"
-                  placeholder="New Password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                />
-              </div>
-              <div>
-                <label htmlFor="confirmPassword" className="sr-only">
-                  Confirm Password
-                </label>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  required
-                  className="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-github-border placeholder-gray-500 dark:placeholder-github-textSecondary text-gray-900 dark:text-white bg-white dark:bg-github-hover rounded-md focus:outline-none focus:ring-github-blue focus:border-github-blue sm:text-sm"
-                  placeholder="Confirm Password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-              </div>
-            </div>
 
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-github-blue hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-github-blue disabled:opacity-50"
-              >
+              <button type="submit" disabled={loading} className="primary-button w-full text-center">
+                {loading ? 'Requesting...' : 'Request Reset'}
+              </button>
+
+              <div className="text-center text-sm">
+                <Link to="/login" className="text-[#7289DA] hover:text-[#9bb0ff] font-semibold">
+                  Back to Sign in
+                </Link>
+              </div>
+            </form>
+          ) : (
+            <form className="space-y-5" onSubmit={handleResetPassword}>
+              {error && (
+                <div className="surface-section p-3 text-sm text-red-200 border border-red-400/40 bg-red-500/10 rounded-xl">
+                  {error}
+                </div>
+              )}
+              {message && (
+                <div className="surface-section p-3 text-sm text-green-200 border border-green-400/30 bg-green-500/10 rounded-xl">
+                  {message}
+                </div>
+              )}
+              <div className="space-y-3">
+                <div>
+                  <label htmlFor="resetCode" className="sr-only">
+                    Reset Code
+                  </label>
+                  <input
+                    id="resetCode"
+                    name="resetCode"
+                    type="text"
+                    required
+                    className="input-field"
+                    placeholder="Enter reset code from email"
+                    value={resetCode}
+                    onChange={(e) => setResetCode(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="newPassword" className="sr-only">
+                    New Password
+                  </label>
+                  <input
+                    id="newPassword"
+                    name="newPassword"
+                    type="password"
+                    required
+                    className="input-field"
+                    placeholder="New Password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="confirmPassword" className="sr-only">
+                    Confirm Password
+                  </label>
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    required
+                    className="input-field"
+                    placeholder="Confirm Password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <button type="submit" disabled={loading} className="primary-button w-full text-center">
                 {loading ? 'Resetting...' : 'Reset Password'}
               </button>
-            </div>
-          </form>
-        )}
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );

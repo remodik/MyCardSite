@@ -34,100 +34,93 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-github-dark py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-            Create your account
-          </h2>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
-              <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
-            </div>
-          )}
-          <div className="rounded-md shadow-sm space-y-4">
-            <div>
-              <label htmlFor="username" className="sr-only">
-                Username
-              </label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                required
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-github-border placeholder-gray-500 dark:placeholder-github-textSecondary text-gray-900 dark:text-white bg-white dark:bg-github-hover rounded-md focus:outline-none focus:ring-github-blue focus:border-github-blue focus:z-10 sm:text-sm"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="email" className="sr-only">
-                Email (optional)
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-github-border placeholder-gray-500 dark:placeholder-github-textSecondary text-gray-900 dark:text-white bg-white dark:bg-github-hover rounded-md focus:outline-none focus:ring-github-blue focus:border-github-blue focus:z-10 sm:text-sm"
-                placeholder="Email (optional, for password reset)"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-github-border placeholder-gray-500 dark:placeholder-github-textSecondary text-gray-900 dark:text-white bg-white dark:bg-github-hover rounded-md focus:outline-none focus:ring-github-blue focus:border-github-blue focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="confirmPassword" className="sr-only">
-                Confirm Password
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                required
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-github-border placeholder-gray-500 dark:placeholder-github-textSecondary text-gray-900 dark:text-white bg-white dark:bg-github-hover rounded-md focus:outline-none focus:ring-github-blue focus:border-github-blue focus:z-10 sm:text-sm"
-                placeholder="Confirm Password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-            </div>
+    <div className="page-shell">
+      <div className="w-full max-w-md">
+        <div className="surface-card p-8 space-y-6 animate-fade-in">
+          <div className="text-center space-y-2">
+            <h2 className="text-2xl font-bold text-white">Регистрация</h2>
+            <p className="text-slate-300 text-sm">Один аккуратный стиль на всех страницах</p>
           </div>
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            {error && (
+              <div className="surface-section p-3 text-sm text-red-200 border border-red-400/40 bg-red-500/10 rounded-xl">
+                {error}
+              </div>
+            )}
+            <div className="space-y-3">
+              <div>
+                <label htmlFor="username" className="sr-only">
+                  Username
+                </label>
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  required
+                  className="input-field"
+                  placeholder="Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+              </div>
+              <div>
+                <label htmlFor="email" className="sr-only">
+                  Email (optional)
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  className="input-field"
+                  placeholder="Email (optional, for password reset)"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div>
+                <label htmlFor="password" className="sr-only">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  className="input-field"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+              <div>
+                <label htmlFor="confirmPassword" className="sr-only">
+                  Confirm Password
+                </label>
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  required
+                  className="input-field"
+                  placeholder="Confirm Password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+              </div>
+            </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-github-blue hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-github-blue disabled:opacity-50"
-            >
+            <button type="submit" disabled={loading} className="primary-button w-full text-center">
               {loading ? 'Creating account...' : 'Sign up'}
             </button>
-          </div>
 
-          <div className="text-center">
-            <span className="text-sm text-gray-600 dark:text-github-textSecondary">
+            <div className="text-center text-sm text-slate-300">
               Already have an account?{' '}
-              <Link to="/login" className="font-medium text-github-blue hover:text-blue-500">
+              <Link to="/login" className="text-[#7289DA] hover:text-[#9bb0ff] font-semibold">
                 Sign in
               </Link>
-            </span>
-          </div>
-        </form>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

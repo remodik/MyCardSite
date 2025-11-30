@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import './App.css';
@@ -13,28 +13,22 @@ import PasswordReset from './pages/PasswordReset';
 import Home from './pages/Home';
 
 function App() {
-  const [darkMode, setDarkMode] = useState(true);
-
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
+    document.documentElement.classList.add('dark');
+  }, []);
 
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-white dark:bg-github-dark text-gray-900 dark:text-github-text">
-          <AppRoutes darkMode={darkMode} setDarkMode={setDarkMode} />
+        <div className="app-background text-slate-100">
+          <AppRoutes />
         </div>
       </Router>
     </AuthProvider>
   );
 }
 
-function AppRoutes({ darkMode, setDarkMode }) {
+function AppRoutes() {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -47,7 +41,7 @@ function AppRoutes({ darkMode, setDarkMode }) {
 
   return (
     <>
-      {user && <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />}
+      {user && <Navbar />}
       <Routes>
         <Route
           path="/login"
