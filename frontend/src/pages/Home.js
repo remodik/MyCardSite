@@ -234,7 +234,7 @@ function Home() {
 
             <div className="surface-section p-5">
               <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                <i className="fas fa-star text-[#faa61a]"></i>
+                <i className="fas fa-star text-[#6b8fc9]"></i>
                 Увлечения
               </h2>
               <div className="flex flex-wrap gap-2">
