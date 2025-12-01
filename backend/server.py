@@ -181,6 +181,32 @@ class ChatMessagePayload(BaseModel):
     message: str
 
 
+class ServiceCreate(BaseModel):
+    name: str
+    description: str
+    price: str
+    estimated_time: str
+    payment_methods: str
+    frameworks: str
+
+
+class ServiceUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[str] = None
+    estimated_time: Optional[str] = None
+    payment_methods: Optional[str] = None
+    frameworks: Optional[str] = None
+
+
+class ContactMessage(BaseModel):
+    name: str
+    email: EmailStr
+    phone: Optional[str] = None
+    subject: str
+    message: str
+
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
