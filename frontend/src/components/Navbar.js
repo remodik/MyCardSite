@@ -62,11 +62,11 @@ export default function Navbar() {
                 <>
                   <div className="text-sm text-slate-200/90">
                     <span className="font-semibold text-white">{user.username}</span>
-                    {isAdmin && <span className="ml-2 text-[#9bb0ff]">Администратор</span>}
+                    {isAdmin && <span className="ml-2 text-[#6b8fc9]">Администратор</span>}
                   </div>
                   <button
                     onClick={logout}
-                    className="rounded-full bg-[#d23369] px-5 py-2 text-sm font-semibold text-white shadow hover:bg-[#e34b80]"
+                    className="rounded-full bg-gradient-to-r from-[#e74c8c] to-[#d63a7a] px-5 py-2 text-sm font-semibold text-white shadow-lg hover:from-[#f06ba4] hover:to-[#e74c8c] transition-all"
                   >
                     Выйти
                   </button>
