@@ -40,9 +40,9 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-40 backdrop-blur-sm">
+    <nav className="sticky top-0 z-40 backdrop-blur-md">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mt-6 mb-4 rounded-2xl border border-white/10 bg-[#2f3136]/90 px-6 py-4 shadow-xl">
+        <div className="mt-6 mb-4 rounded-2xl border border-white/10 bg-gradient-to-r from-[#1e2838]/95 to-[#1a2332]/95 px-6 py-4 shadow-2xl backdrop-blur-lg">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex flex-col gap-3">
               <Link
