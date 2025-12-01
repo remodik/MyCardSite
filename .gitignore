@@ -10,4 +10,7 @@ frontend/node_modules/-e
 # Environment files
 *.env
 *.env.*
-*/.idea/
+*/.idea/-e 
+# Environment files
+*.env
+*.env.*
