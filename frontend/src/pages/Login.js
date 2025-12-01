@@ -69,7 +69,7 @@ export default function Login() {
             </div>
 
             <div className="flex items-center justify-between text-sm">
-              <Link to="/reset-password" className="text-[#7289DA] hover:text-[#9bb0ff]">
+              <Link to="/reset-password" className="text-[#6b8fc9] hover:text-[#8aa5d6] transition-colors">
                 Forgot your password?
               </Link>
             </div>
