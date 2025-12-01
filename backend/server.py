@@ -29,6 +29,7 @@ from database import (
     File as FileModel,
     PasswordReset as PasswordResetModel,
     Project,
+    Service,
     User,
     async_session_factory,
     get_session,
