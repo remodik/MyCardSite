@@ -11,6 +11,8 @@ import Chat from './pages/Chat';
 import AdminPanel from './pages/AdminPanel';
 import PasswordReset from './pages/PasswordReset';
 import Home from './pages/Home';
+import Services from './pages/Services';
+import Contact from './pages/Contact';
 
 function App() {
   useEffect(() => {
