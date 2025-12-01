@@ -199,21 +199,25 @@
   border-radius: 4px;
 }
 
-/* Shared layout to echo the landing page */
+/* Modern acrylic dark blue palette */
 :root {
-  --bg-start: #1e2a4a;
-  --bg-mid: #2c3e50;
-  --surface: #2f3136;
-  --surface-soft: #3b4052;
-  --accent: #7289da;
-  --accent-strong: #5865f2;
+  --bg-start: #0f1729;
+  --bg-mid: #1a2332;
+  --surface: #1e2838;
+  --surface-soft: #2a3547;
+  --accent: #4a6fa5;
+  --accent-strong: #5a7fb8;
+  --accent-hover: #6b8fc9;
+  --pink-accent: #e74c8c;
+  --text-primary: #f0f4f8;
+  --text-secondary: #cbd5e1;
 }
 
 .app-background {
   min-height: 100vh;
-  background: radial-gradient(circle at 10% 20%, rgba(104, 130, 255, 0.08), transparent 25%),
-    radial-gradient(circle at 90% 10%, rgba(214, 82, 133, 0.08), transparent 25%),
-    linear-gradient(135deg, var(--bg-start), var(--bg-mid));
+  background: radial-gradient(circle at 15% 15%, rgba(74, 111, 165, 0.12), transparent 35%),
+    radial-gradient(circle at 85% 75%, rgba(231, 76, 140, 0.08), transparent 35%),
+    linear-gradient(135deg, var(--bg-start) 0%, var(--bg-mid) 50%, #0f1729 100%);
 }
 
 .page-shell {
