@@ -225,7 +225,7 @@ function Home() {
               </p>
               <p className="text-slate-200/90">
                 День рождения{' '}
-                <span className="text-[#7289DA] font-semibold">
+                <span className="text-[#6b8fc9] font-semibold">
                   {birthdayInfo.relativeTime}
                   {birthdayInfo.fullDate ? ` (${birthdayInfo.fullDate})` : ''}
                 </span>
