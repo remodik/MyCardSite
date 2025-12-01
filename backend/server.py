@@ -927,6 +927,164 @@ async def websocket_chat(websocket: WebSocket, token: str) -> None:
 async def health() -> Dict[str, str]:
     return {"status": "ok"}
 
+
+def service_to_dict(service: Service) -> Dict[str, Any]:
+    return {
+        "id": service.id,
+        "name": service.name,
+        "description": service.description,
+        "price": service.price,
+        "estimated_time": service.estimated_time,
+        "payment_methods": service.payment_methods,
+        "frameworks": service.frameworks,
+        "created_at": _to_iso(service.created_at),
+        "updated_at": _to_iso(service.updated_at),
+    }
+
+
+@app.get("/api/services")
+async def get_services(
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> List[Dict[str, Any]]:
+    await ensure_db_connection(session)
+    result = await session.execute(select(Service))
+    services = [service_to_dict(service) for service in result.scalars().all()]
+    return services
+
+
+@app.post("/api/services")
+async def create_service(
+    service: ServiceCreate,
+    current_user: Dict[str, Any] = Depends(get_current_admin),
+    session: AsyncSession = Depends(get_session),
+) -> Dict[str, Any]:
+    await ensure_db_connection(session)
+    service_id = str(uuid.uuid4())
+    service_obj = Service(
+        id=service_id,
+        name=service.name,
+        description=service.description,
+        price=service.price,
+        estimated_time=service.estimated_time,
+        payment_methods=service.payment_methods,
+        frameworks=service.frameworks,
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+    )
+    session.add(service_obj)
+    await session.commit()
+    return service_to_dict(service_obj)
+
+
+@app.put("/api/services/{service_id}")
+async def update_service(
+    service_id: str,
+    service: ServiceUpdate,
+    current_user: Dict[str, Any] = Depends(get_current_admin),
+    session: AsyncSession = Depends(get_session),
+) -> Dict[str, Any]:
+    await ensure_db_connection(session)
+    service_obj = await session.get(Service, service_id)
+    if not service_obj:
+        raise HTTPException(status_code=404, detail="Service not found")
+    
+    update_data = {k: v for k, v in service.dict().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    
+    for key, value in update_data.items():
+        setattr(service_obj, key, value)
+    service_obj.updated_at = datetime.now()
+    
+    await session.commit()
+    await session.refresh(service_obj)
+    return service_to_dict(service_obj)
+
+
+@app.delete("/api/services/{service_id}")
+async def delete_service(
+    service_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_admin),
+    session: AsyncSession = Depends(get_session),
+) -> Dict[str, str]:
+    await ensure_db_connection(session)
+    service_obj = await session.get(Service, service_id)
+    if not service_obj:
+        raise HTTPException(status_code=404, detail="Service not found")
+    
+    await session.delete(service_obj)
+    await session.commit()
+    return {"message": "Service deleted"}
+
+
+@app.post("/api/contact")
+async def send_contact_message(contact: ContactMessage) -> Dict[str, Any]:
+    if not SMTP_HOST:
+        raise HTTPException(status_code=503, detail="Email service not configured")
+    
+    sender = FROM_EMAIL or SMTP_USER
+    if not sender:
+        raise HTTPException(status_code=503, detail="Email sender not configured")
+    
+    subject = f"Контакт: {contact.subject}"
+    phone_text = f"\nТелефон: {contact.phone}" if contact.phone else ""
+    text_content = f"""
+Новое сообщение с формы контакта:
+
+Имя: {contact.name}
+Email: {contact.email}{phone_text}
+Тема: {contact.subject}
+
+Сообщение:
+{contact.message}
+"""
+    
+    html_content = f"""
+<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <h2 style="color: #5865F2;">Новое сообщение с формы контакта</h2>
+    <div style="background: #f5f5f5; padding: 20px; border-radius: 8px;">
+        <p><strong>Имя:</strong> {contact.name}</p>
+        <p><strong>Email:</strong> {contact.email}</p>
+        {f'<p><strong>Телефон:</strong> {contact.phone}</p>' if contact.phone else ''}
+        <p><strong>Тема:</strong> {contact.subject}</p>
+        <hr style="border: none; border-top: 1px solid #ddd; margin: 15px 0;">
+        <p><strong>Сообщение:</strong></p>
+        <p style="white-space: pre-wrap;">{contact.message}</p>
+    </div>
+</body>
+</html>
+"""
+    
+    message_data = {
+        "subject": subject,
+        "text": text_content,
+        "html": html_content,
+    }
+    
+    if FASTMAIL_CLIENT:
+        message = MessageSchema(
+            subject=subject,
+            recipients=[sender],
+            body=html_content,
+            subtype=MessageType.html,
+        )
+        try:
+            await FASTMAIL_CLIENT.send_message(message)
+            return {"success": True, "message": "Сообщение отправлено"}
+        except Exception as exc:
+            print(f"FastMail send failed, falling back to SMTP: {exc}")
+    
+    loop = asyncio.get_running_loop()
+    success = await loop.run_in_executor(None, _send_reset_email, sender, message_data)
+    
+    if success:
+        return {"success": True, "message": "Сообщение отправлено"}
+    else:
+        raise HTTPException(status_code=500, detail="Failed to send email")
+
+
 if __name__ == "__main__":
     import uvicorn
 
