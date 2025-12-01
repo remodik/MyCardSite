@@ -4,8 +4,10 @@ import { useAuth } from '../context/AuthContext';
 
 const navLinks = [
   { path: '/', label: 'Главная', requiresAuth: false },
+  { path: '/services', label: 'Услуги', requiresAuth: true },
   { path: '/projects', label: 'Проекты', requiresAuth: true },
   { path: '/chat', label: 'Чат', requiresAuth: true },
+  { path: '/contact', label: 'Контакты', requiresAuth: false },
 ];
 
 export default function Navbar() {
