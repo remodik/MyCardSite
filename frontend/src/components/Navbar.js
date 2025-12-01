@@ -4,8 +4,10 @@ import { useAuth } from '../context/AuthContext';
 
 const navLinks = [
   { path: '/', label: 'Главная', requiresAuth: false },
+  { path: '/services', label: 'Услуги', requiresAuth: true },
   { path: '/projects', label: 'Проекты', requiresAuth: true },
   { path: '/chat', label: 'Чат', requiresAuth: true },
+  { path: '/contact', label: 'Контакты', requiresAuth: false },
 ];
 
 export default function Navbar() {
@@ -17,8 +19,8 @@ export default function Navbar() {
   const renderLink = (link) => {
     const disabled = link.requiresAuth && !user;
     const baseClasses =
-      'px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-200';
-    const activeClasses = 'bg-[#7289DA] text-white shadow-md';
+      'px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200';
+    const activeClasses = 'bg-gradient-to-r from-[#5a7fb8] to-[#4a6fa5] text-white shadow-lg';
     const idleClasses = 'text-slate-200/90 hover:text-white hover:bg-white/10';
     const disabledClasses = 'opacity-50 cursor-not-allowed pointer-events-none';
 
@@ -38,9 +40,9 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-40 backdrop-blur-sm">
+    <nav className="sticky top-0 z-40 backdrop-blur-md">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mt-6 mb-4 rounded-2xl border border-white/10 bg-[#2f3136]/90 px-6 py-4 shadow-xl">
+        <div className="mt-6 mb-4 rounded-2xl border border-white/10 bg-gradient-to-r from-[#1e2838]/95 to-[#1a2332]/95 px-6 py-4 shadow-2xl backdrop-blur-lg">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex flex-col gap-3">
               <Link
@@ -60,11 +62,11 @@ export default function Navbar() {
                 <>
                   <div className="text-sm text-slate-200/90">
                     <span className="font-semibold text-white">{user.username}</span>
-                    {isAdmin && <span className="ml-2 text-[#9bb0ff]">Администратор</span>}
+                    {isAdmin && <span className="ml-2 text-[#6b8fc9]">Администратор</span>}
                   </div>
                   <button
                     onClick={logout}
-                    className="rounded-full bg-[#d23369] px-5 py-2 text-sm font-semibold text-white shadow hover:bg-[#e34b80]"
+                    className="rounded-full bg-gradient-to-r from-[#e74c8c] to-[#d63a7a] px-5 py-2 text-sm font-semibold text-white shadow-lg hover:from-[#f06ba4] hover:to-[#e74c8c] transition-all"
                   >
                     Выйти
                   </button>

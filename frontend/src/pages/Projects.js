@@ -80,8 +80,8 @@ export default function Projects() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {projects.map((project) => (
-            <div key={project.id} className="surface-section p-5 flex flex-col gap-3">
-              <Link to={`/projects/${project.id}`} className="text-xl font-semibold text-[#7289DA] hover:text-[#9bb0ff]">
+            <div key={project.id} className="surface-section p-5 flex flex-col gap-3 transition-all hover:border-[#6b8fc9]/30">
+              <Link to={`/projects/${project.id}`} className="text-xl font-semibold text-[#6b8fc9] hover:text-[#8aa5d6] transition-colors">
                 {project.name}
               </Link>
               <p className="text-slate-200/90 text-sm min-h-[48px]">{project.description}</p>

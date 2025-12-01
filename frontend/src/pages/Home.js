@@ -206,15 +206,15 @@ function Home() {
             <h1 className="text-3xl font-bold text-white mb-3 drop-shadow-lg">remod3</h1>
 
             <div className="flex flex-col gap-2 items-center">
-              <span className="pill-tag bg-white text-[#7289DA] border-white">チェリー | せんちゃ</span>
-              <span className="pill-tag bg-white text-[#7289DA] border-white">ベテルギウスロマネ・コンティ</span>
+              <span className="pill-tag" style={{ background: 'white', color: '#4a6fa5', borderColor: 'white' }}>チェリー | せんちゃ</span>
+              <span className="pill-tag" style={{ background: 'white', color: '#4a6fa5', borderColor: 'white' }}>ベテルギウスロマネ・コンティ</span>
             </div>
           </div>
 
           <div className="px-8 pb-8 space-y-6">
             <div className="surface-section p-5">
               <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                <i className="fas fa-heart text-[#d23369]"></i>
+                <i className="fas fa-heart text-[#e74c8c]"></i>
                 Обо мне
               </h2>
               <p className="text-slate-200/90 mb-2">
@@ -225,7 +225,7 @@ function Home() {
               </p>
               <p className="text-slate-200/90">
                 День рождения{' '}
-                <span className="text-[#7289DA] font-semibold">
+                <span className="text-[#6b8fc9] font-semibold">
                   {birthdayInfo.relativeTime}
                   {birthdayInfo.fullDate ? ` (${birthdayInfo.fullDate})` : ''}
                 </span>
@@ -234,7 +234,7 @@ function Home() {
 
             <div className="surface-section p-5">
               <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                <i className="fas fa-star text-[#faa61a]"></i>
+                <i className="fas fa-star text-[#6b8fc9]"></i>
                 Увлечения
               </h2>
               <div className="flex flex-wrap gap-2">
@@ -248,29 +248,29 @@ function Home() {
 
             <div className="surface-section p-5">
               <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                <i className="fas fa-envelope text-[#43b581]"></i>
+                <i className="fas fa-envelope text-[#6b8fc9]"></i>
                 Контакты
               </h2>
               <div className="space-y-2 text-slate-200/90">
                 <div className="flex items-center gap-3">
-                  <i className="fas fa-envelope text-[#d23369] w-5"></i>
+                  <i className="fas fa-envelope text-[#e74c8c] w-5"></i>
                   <span>slenderzet@gmail.com</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <i className="fas fa-map-marker-alt text-[#d23369] w-5"></i>
+                  <i className="fas fa-map-marker-alt text-[#e74c8c] w-5"></i>
                   <span>Токио, Япония (мечтаю там побывать)</span>
                 </div>
               </div>
             </div>
 
             <div className="surface-section p-5 flex flex-col gap-4 items-center">
-              <div className="flex flex-wrap justify-center gap-4 text-[#d23369] text-2xl">
+              <div className="flex flex-wrap justify-center gap-4 text-[#e74c8c] text-2xl">
                 <a
                   href="https://vk.com/remod3"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="VK"
-                  className="hover:text-[#e04377]"
+                  className="hover:text-[#f06ba4] transition-colors"
                 >
                   <i className="fab fa-vk"></i>
                 </a>
@@ -279,7 +279,7 @@ function Home() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Telegram"
-                  className="hover:text-[#e04377]"
+                  className="hover:text-[#f06ba4] transition-colors"
                 >
                   <i className="fab fa-telegram"></i>
                 </a>
@@ -288,7 +288,7 @@ function Home() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Discord Server"
-                  className="hover:text-[#e04377]"
+                  className="hover:text-[#f06ba4] transition-colors"
                 >
                   <i className="fab fa-discord"></i>
                 </a>
@@ -297,7 +297,7 @@ function Home() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Discord Profile"
-                  className="hover:text-[#e04377]"
+                  className="hover:text-[#f06ba4] transition-colors"
                 >
                   <i className="fab fa-discord"></i>
                 </a>
@@ -306,13 +306,13 @@ function Home() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Spotify"
-                  className="hover:text-[#e04377]"
+                  className="hover:text-[#f06ba4] transition-colors"
                 >
                   <i className="fab fa-spotify"></i>
                 </a>
               </div>
 
-              <div className="flex justify-center gap-8 text-[#7289DA]">
+              <div className="flex justify-center gap-8 text-[#6b8fc9]">
                 <div className="flex items-center gap-2">
                   <i className="fas fa-eye"></i>
                   <span>{viewsCount}</span>
@@ -320,7 +320,7 @@ function Home() {
                 <button
                   type="button"
                   onClick={handleLike}
-                  className={`flex items-center gap-2 ${hasLiked ? 'text-[#e74c3c]' : 'hover:text-[#8899EA]'}`}
+                  className={`flex items-center gap-2 transition-colors ${hasLiked ? 'text-[#e74c8c]' : 'hover:text-[#8aa5d6]'}`}
                 >
                   <i className={`${hasLiked ? 'fas' : 'far'} fa-heart`}></i>
                   <span>{likesCount}</span>
@@ -336,7 +336,7 @@ function Home() {
               <button
                 onClick={() => setActiveTab('projects')}
                 className={`muted-button px-5 py-2 ${
-                  activeTab === 'projects' ? 'border-[#7289DA] text-[#7289DA]' : ''
+                  activeTab === 'projects' ? 'border-[#6b8fc9] text-[#6b8fc9] bg-[#4a6fa5]/10' : ''
                 }`}
               >
                 <i className="fas fa-folder mr-2"></i>
@@ -345,7 +345,7 @@ function Home() {
               <button
                 onClick={() => setActiveTab('chat')}
                 className={`muted-button px-5 py-2 ${
-                  activeTab === 'chat' ? 'border-[#7289DA] text-[#7289DA]' : ''
+                  activeTab === 'chat' ? 'border-[#6b8fc9] text-[#6b8fc9] bg-[#4a6fa5]/10' : ''
                 }`}
               >
                 <i className="fas fa-comments mr-2"></i>

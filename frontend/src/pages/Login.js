@@ -69,7 +69,7 @@ export default function Login() {
             </div>
 
             <div className="flex items-center justify-between text-sm">
-              <Link to="/reset-password" className="text-[#7289DA] hover:text-[#9bb0ff]">
+              <Link to="/reset-password" className="text-[#6b8fc9] hover:text-[#8aa5d6] transition-colors">
                 Forgot your password?
               </Link>
             </div>
@@ -80,7 +80,7 @@ export default function Login() {
 
             <div className="text-center text-sm text-slate-300">
               Don't have an account?{' '}
-              <Link to="/register" className="text-[#7289DA] hover:text-[#9bb0ff] font-semibold">
+              <Link to="/register" className="text-[#6b8fc9] hover:text-[#8aa5d6] transition-colors font-semibold">
                 Sign up
               </Link>
             </div>

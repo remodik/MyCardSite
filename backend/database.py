@@ -102,6 +102,20 @@ class ChatMessage(Base):
     timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
 
 
+class Service(Base):
+    __tablename__ = "services"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    price: Mapped[str] = mapped_column(String(100), nullable=False)
+    estimated_time: Mapped[str] = mapped_column(String(100), nullable=False)
+    payment_methods: Mapped[str] = mapped_column(Text, nullable=False)
+    frameworks: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+
 async def init_models() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
