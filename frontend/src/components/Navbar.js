@@ -19,8 +19,8 @@ export default function Navbar() {
   const renderLink = (link) => {
     const disabled = link.requiresAuth && !user;
     const baseClasses =
-      'px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-200';
-    const activeClasses = 'bg-[#7289DA] text-white shadow-md';
+      'px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200';
+    const activeClasses = 'bg-gradient-to-r from-[#5a7fb8] to-[#4a6fa5] text-white shadow-lg';
     const idleClasses = 'text-slate-200/90 hover:text-white hover:bg-white/10';
     const disabledClasses = 'opacity-50 cursor-not-allowed pointer-events-none';
 
