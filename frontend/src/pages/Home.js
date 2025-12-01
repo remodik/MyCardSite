@@ -214,7 +214,7 @@ function Home() {
           <div className="px-8 pb-8 space-y-6">
             <div className="surface-section p-5">
               <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                <i className="fas fa-heart text-[#d23369]"></i>
+                <i className="fas fa-heart text-[#e74c8c]"></i>
                 Обо мне
               </h2>
               <p className="text-slate-200/90 mb-2">
