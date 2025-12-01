@@ -336,7 +336,7 @@ function Home() {
               <button
                 onClick={() => setActiveTab('projects')}
                 className={`muted-button px-5 py-2 ${
-                  activeTab === 'projects' ? 'border-[#7289DA] text-[#7289DA]' : ''
+                  activeTab === 'projects' ? 'border-[#6b8fc9] text-[#6b8fc9] bg-[#4a6fa5]/10' : ''
                 }`}
               >
                 <i className="fas fa-folder mr-2"></i>
@@ -345,7 +345,7 @@ function Home() {
               <button
                 onClick={() => setActiveTab('chat')}
                 className={`muted-button px-5 py-2 ${
-                  activeTab === 'chat' ? 'border-[#7289DA] text-[#7289DA]' : ''
+                  activeTab === 'chat' ? 'border-[#6b8fc9] text-[#6b8fc9] bg-[#4a6fa5]/10' : ''
                 }`}
               >
                 <i className="fas fa-comments mr-2"></i>
