@@ -206,8 +206,8 @@ function Home() {
             <h1 className="text-3xl font-bold text-white mb-3 drop-shadow-lg">remod3</h1>
 
             <div className="flex flex-col gap-2 items-center">
-              <span className="pill-tag bg-white text-[#7289DA] border-white">チェリー | せんちゃ</span>
-              <span className="pill-tag bg-white text-[#7289DA] border-white">ベテルギウスロマネ・コンティ</span>
+              <span className="pill-tag" style={{ background: 'white', color: '#4a6fa5', borderColor: 'white' }}>チェリー | せんちゃ</span>
+              <span className="pill-tag" style={{ background: 'white', color: '#4a6fa5', borderColor: 'white' }}>ベテルギウスロマネ・コンティ</span>
             </div>
           </div>
 
