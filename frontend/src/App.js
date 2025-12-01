@@ -73,6 +73,11 @@ function AppRoutes() {
           path="/admin"
           element={user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/projects" />}
         />
+        <Route
+          path="/services"
+          element={user ? <Services /> : <Navigate to="/login" />}
+        />
+        <Route path="/contact" element={<Contact />} />
         <Route path="/" element={<Home />} />
       </Routes>
     </>
