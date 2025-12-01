@@ -264,13 +264,13 @@ function Home() {
             </div>
 
             <div className="surface-section p-5 flex flex-col gap-4 items-center">
-              <div className="flex flex-wrap justify-center gap-4 text-[#d23369] text-2xl">
+              <div className="flex flex-wrap justify-center gap-4 text-[#e74c8c] text-2xl">
                 <a
                   href="https://vk.com/remod3"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="VK"
-                  className="hover:text-[#e04377]"
+                  className="hover:text-[#f06ba4] transition-colors"
                 >
                   <i className="fab fa-vk"></i>
                 </a>
@@ -279,7 +279,7 @@ function Home() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Telegram"
-                  className="hover:text-[#e04377]"
+                  className="hover:text-[#f06ba4] transition-colors"
                 >
                   <i className="fab fa-telegram"></i>
                 </a>
@@ -288,7 +288,7 @@ function Home() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Discord Server"
-                  className="hover:text-[#e04377]"
+                  className="hover:text-[#f06ba4] transition-colors"
                 >
                   <i className="fab fa-discord"></i>
                 </a>
@@ -297,7 +297,7 @@ function Home() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Discord Profile"
-                  className="hover:text-[#e04377]"
+                  className="hover:text-[#f06ba4] transition-colors"
                 >
                   <i className="fab fa-discord"></i>
                 </a>
@@ -306,13 +306,13 @@ function Home() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Spotify"
-                  className="hover:text-[#e04377]"
+                  className="hover:text-[#f06ba4] transition-colors"
                 >
                   <i className="fab fa-spotify"></i>
                 </a>
               </div>
 
-              <div className="flex justify-center gap-8 text-[#7289DA]">
+              <div className="flex justify-center gap-8 text-[#6b8fc9]">
                 <div className="flex items-center gap-2">
                   <i className="fas fa-eye"></i>
                   <span>{viewsCount}</span>
@@ -320,7 +320,7 @@ function Home() {
                 <button
                   type="button"
                   onClick={handleLike}
-                  className={`flex items-center gap-2 ${hasLiked ? 'text-[#e74c3c]' : 'hover:text-[#8899EA]'}`}
+                  className={`flex items-center gap-2 transition-colors ${hasLiked ? 'text-[#e74c8c]' : 'hover:text-[#8aa5d6]'}`}
                 >
                   <i className={`${hasLiked ? 'fas' : 'far'} fa-heart`}></i>
                   <span>{likesCount}</span>
