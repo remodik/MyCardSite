@@ -248,16 +248,16 @@ function Home() {
 
             <div className="surface-section p-5">
               <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                <i className="fas fa-envelope text-[#43b581]"></i>
+                <i className="fas fa-envelope text-[#6b8fc9]"></i>
                 Контакты
               </h2>
               <div className="space-y-2 text-slate-200/90">
                 <div className="flex items-center gap-3">
-                  <i className="fas fa-envelope text-[#d23369] w-5"></i>
+                  <i className="fas fa-envelope text-[#e74c8c] w-5"></i>
                   <span>slenderzet@gmail.com</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <i className="fas fa-map-marker-alt text-[#d23369] w-5"></i>
+                  <i className="fas fa-map-marker-alt text-[#e74c8c] w-5"></i>
                   <span>Токио, Япония (мечтаю там побывать)</span>
                 </div>
               </div>
