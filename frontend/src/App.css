@@ -306,11 +306,20 @@
 
 .pill-tag {
   display: inline-block;
-  padding: 8px 12px;
+  padding: 8px 14px;
   border-radius: 9999px;
-  background: #40444b;
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: linear-gradient(135deg, rgba(74, 111, 165, 0.2) 0%, rgba(42, 53, 71, 0.3) 100%);
+  color: var(--text-primary);
+  border: 1px solid rgba(74, 111, 165, 0.3);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.pill-tag:hover {
+  background: linear-gradient(135deg, rgba(74, 111, 165, 0.3) 0%, rgba(42, 53, 71, 0.4) 100%);
+  border-color: rgba(74, 111, 165, 0.5);
+  transform: scale(1.05);
 }
 
 .prose blockquote.alert-warning {
