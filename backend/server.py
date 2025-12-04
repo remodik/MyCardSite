@@ -944,7 +944,6 @@ def service_to_dict(service: Service) -> Dict[str, Any]:
 
 @app.get("/api/services")
 async def get_services(
-    current_user: Dict[str, Any] = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> List[Dict[str, Any]]:
     await ensure_db_connection(session)
