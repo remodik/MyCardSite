@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 
 const navLinks = [
   { path: '/', label: 'Главная', requiresAuth: false },
-  { path: '/services', label: 'Услуги', requiresAuth: true },
+  { path: '/services', label: 'Услуги', requiresAuth: false },
   { path: '/projects', label: 'Проекты', requiresAuth: true },
   { path: '/chat', label: 'Чат', requiresAuth: true },
   { path: '/contact', label: 'Контакты', requiresAuth: false },
