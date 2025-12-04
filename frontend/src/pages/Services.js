@@ -80,10 +80,12 @@ export default function Services() {
   const handleDelete = async (serviceId) => {
     if (!window.confirm('Вы уверены, что хотите удалить эту услугу?')) return;
     try {
-      await axios.delete(`${API_URL}/api/services/${serviceId}`);
+      await axios.delete(`${API_URL}/api/services/${serviceId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       await fetchServices();
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to delete service');
+      setError(err.response?.data?.detail || 'Не удалось удалить услугу');
     }
   };
 
