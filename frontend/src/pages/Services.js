@@ -40,9 +40,13 @@ export default function Services() {
     e.preventDefault();
     try {
       if (editingService) {
-        await axios.put(`${API_URL}/api/services/${editingService.id}`, formData);
+        await axios.put(`${API_URL}/api/services/${editingService.id}`, formData, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
       } else {
-        await axios.post(`${API_URL}/api/services`, formData);
+        await axios.post(`${API_URL}/api/services`, formData, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
       }
       setShowCreateModal(false);
       setEditingService(null);
@@ -56,7 +60,7 @@ export default function Services() {
       });
       await fetchServices();
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to save service');
+      setError(err.response?.data?.detail || 'Не удалось сохранить услугу');
     }
   };
 
