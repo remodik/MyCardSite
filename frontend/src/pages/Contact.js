@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 export default function Contact() {
+  const { API_URL } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -12,8 +14,6 @@ export default function Contact() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-
-  const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
