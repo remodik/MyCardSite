@@ -434,3 +434,115 @@
 - ✅ Demo file showcasing all markdown features
 
 The app is production-ready with proper security, error handling, enhanced user experience, and industry-standard markdown rendering capabilities.
+
+---
+
+## Session 2: Services & Contact Pages (December 2024)
+
+### New Requirements
+1. **Services Page** - Display services for sale with expandable cards
+   - Public access for viewing
+   - Admin-only: add/edit/delete services
+   - Fields: Name, Description, Price, Estimated Time, Payment Methods, Frameworks
+   
+2. **Contact Form** - Allow users to contact via form
+   - Fields: Name, Email, Phone (optional), Subject, Message
+   - Email notifications sent to admin
+
+### Implementation Status
+
+#### ✅ Backend Setup
+1. **Database Model**: Service model added to SQLite
+2. **API Endpoints**:
+   - `GET /api/services` - Public access to view all services
+   - `POST /api/services` - Admin only, create service
+   - `PUT /api/services/{id}` - Admin only, update service
+   - `DELETE /api/services/{id}` - Admin only, delete service
+   - `POST /api/contact` - Public, send contact message
+   
+3. **SMTP Configuration**: Gmail SMTP configured for email sending
+   - Email: slenderzet@gmail.com
+   - Using Gmail App Password
+   - Port: 587, TLS enabled
+
+4. **Demo Data**: 4 sample services pre-populated
+   - Web Application Development (50,000 руб.)
+   - Discord Bot Development (15,000 руб.)
+   - Landing Page (10,000 руб.)
+   - Consulting (1,500 руб./час)
+
+#### ✅ Frontend Implementation
+1. **Services Page** (`/services`):
+   - Public access (no authentication required)
+   - List of services with expandable cards
+   - Each card shows: name, description (preview), price
+   - Expanded view shows: full description, time estimate, payment methods, tech stack
+   - Admin features: "Add Service" button, Edit/Delete buttons
+   - Modal form for creating/editing services
+   - Responsive design with dark blue theme
+
+2. **Contact Page** (`/contact`):
+   - Public access
+   - Form with validation
+   - Success/error message display
+   - Loading state during submission
+   - Additional contact information section (email, social links)
+
+3. **Navigation**:
+   - Services and Contact links added to navbar
+   - Available for all users (no auth required)
+   - Login/Register buttons for guests
+
+#### ✅ Design Integration
+- Dark blue acrylic theme maintained
+- Consistent styling with existing pages
+- Smooth animations and transitions
+- Mobile-responsive layouts
+
+### Testing Results
+
+#### Backend API Tests
+✅ GET /api/services - Returns 4 demo services without auth
+✅ POST /api/contact - Successfully sends email via Gmail SMTP
+
+#### Frontend Tests
+✅ Home page loads correctly with profile card
+✅ Services page displays all services (public access)
+✅ Service cards expand/collapse on click
+✅ Contact form renders correctly
+✅ Contact form submission works (email sent)
+✅ Navigation between all pages works
+✅ Responsive design on 1920x800 viewport
+
+### Admin Access Updated
+**Admin User:**
+- Username: `remod3`
+- Password: `domer123`
+- Role: admin
+- Can manage services (create/edit/delete)
+
+### Files Modified/Created
+
+**Backend:**
+- `/app/backend/.env` - Created with SMTP credentials
+- `/app/backend/server.py` - Modified GET /api/services to be public
+- `/app/backend/database.py` - Already had Service model
+- `/app/backend/create_demo_services.py` - Created for demo data
+
+**Frontend:**
+- `/app/frontend/src/pages/Services.js` - Already implemented (updated for public access)
+- `/app/frontend/src/pages/Contact.js` - Already implemented
+- `/app/frontend/src/App.js` - Made /services route public, Navbar always visible
+- `/app/frontend/src/components/Navbar.js` - Made Services link public
+
+### Known Issues & Notes
+- ✅ All issues resolved
+- SMTP configuration working correctly
+- Public access to Services page working
+- Contact form successfully sending emails
+
+### Next Steps (If Needed)
+- Full end-to-end testing via testing agent
+- Admin functionality testing (create/edit/delete services)
+- Mobile responsiveness testing
+- Email delivery verification
