@@ -13,7 +13,7 @@ export default function Contact() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
 
-  const API_URL = process.env.REACT_APP_BACKEND_URL || '';
+  const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
