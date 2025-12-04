@@ -22,16 +22,22 @@ export default function Contact() {
     setLoading(true);
 
     try {
-      await axios.post(`${API_URL}/api/contact`, formData);
-      setSuccess(true);
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        subject: '',
-        message: '',
-      });
+      const response = await axios.post(`${API_URL}/api/contact`, formData);
+      console.log('Contact form response:', response);
+      if (response.data && response.data.success) {
+        setSuccess(true);
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          subject: '',
+          message: '',
+        });
+      } else {
+        setError('Неожиданный ответ от сервера');
+      }
     } catch (err) {
+      console.error('Contact form error:', err);
       setError(err.response?.data?.detail || 'Не удалось отправить сообщение. Попробуйте позже.');
     } finally {
       setLoading(false);
