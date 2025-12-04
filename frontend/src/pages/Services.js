@@ -25,10 +25,12 @@ export default function Services() {
 
   const fetchServices = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/services`);
+      const response = await axios.get(`${API_URL}/api/services`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
       setServices(response.data);
     } catch (err) {
-      setError('Failed to fetch services');
+      setError('Не удалось загрузить услуги');
     } finally {
       setLoading(false);
     }
