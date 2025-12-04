@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 
 export default function Services() {
-  const { API_URL, isAdmin } = useAuth();
+  const { API_URL, isAdmin, token } = useAuth();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState(null);
