@@ -45,12 +45,6 @@ export default function Navbar() {
         <div className="mt-6 mb-4 rounded-2xl border border-white/10 bg-gradient-to-r from-[#1e2838]/95 to-[#1a2332]/95 px-6 py-4 shadow-2xl backdrop-blur-lg">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex flex-col gap-3">
-              <Link
-                to="/"
-                className="text-2xl font-extrabold tracking-tight text-white drop-shadow"
-              >
-                MyCardSite
-              </Link>
               <div className="flex flex-wrap gap-2">
                 {navLinks.map(renderLink)}
                 {isAdmin &&
