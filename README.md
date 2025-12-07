@@ -123,7 +123,7 @@ Full-stack приложение для управления проектами �
 Все сервисы управляются через supervisor:
 
 ```bash
-# Перезапуск всех сервисов
+  # Перезапуск всех сервисов
 sudo supervisorctl restart all
 
 # Перезапуск отдельных сервисов
@@ -138,7 +138,7 @@ sudo supervisorctl status
 ### Создание тестовых данных
 
 ```bash
-# Создать админа
+  # Создать админа
 cd /app/backend && python create_admin.py
 
 # Создать тестового пользователя
@@ -232,7 +232,7 @@ cd /app/backend && python create_demo_data.py
 
 ### Backend
 ```bash
-cd /app/backend
+  cd /app/backend
 source ~/.venv/bin/activate
 pip install -r requirements.txt
 uvicorn server:app --reload --host 0.0.0.0 --port 8001
@@ -240,7 +240,7 @@ uvicorn server:app --reload --host 0.0.0.0 --port 8001
 
 ### Frontend
 ```bash
-cd /app/frontend
+  cd /app/frontend
 yarn install
 yarn start
 ```
@@ -248,7 +248,7 @@ yarn start
 ## Логи
 
 ```bash
-# Backend логи
+  # Backend логи
 tail -f /var/log/supervisor/backend.err.log
 tail -f /var/log/supervisor/backend.out.log
 
