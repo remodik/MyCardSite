@@ -208,8 +208,7 @@ async def create_advanced_markdown():
     
     project_id = projects[0]["id"]
     print(f"Using project: {project_id}")
-    
-    # Create advanced markdown file
+
     file_response = requests.post(
         f"{API_URL}/api/files",
         headers=headers,
