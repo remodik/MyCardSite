@@ -174,17 +174,6 @@ function Home() {
   return (
     <div className="profile-page">
       <div className="w-full max-w-5xl flex flex-col items-center gap-4">
-        {!user && (
-          <div className="auth-actions animate-fade-in">
-            <Link to="/login" className="primary-button">
-              Вход
-            </Link>
-            <Link to="/register" className="muted-button">
-              Регистрация
-            </Link>
-          </div>
-        )}
-
         <div className="profile-card">
           <div
             className="profile-banner"
@@ -193,10 +182,11 @@ function Home() {
 
           <div className="profile-header">
             <div className="avatar-ring">
-              <img src="/blue_avatar.png" alt="Avatar" className="profile-avatar" />
+                <span className="avatar-decoration" aria-hidden="true"></span>
+                <img src="/blue_avatar.png" alt="Avatar" className="profile-avatar" />
             </div>
             <div className="profile-name">remod3</div>
-            <div className="flex flex-col gap-2 items-center">
+            <div className="profile-subtitle-stack">
               <span className="profile-subtitle">チェリー | せんちゃ</span>
               <span className="profile-subtitle">ベテルギウスロマネ・コンティ</span>
             </div>
