@@ -232,181 +232,215 @@ export default function ProjectDetail() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-6">
-        <button onClick={() => navigate('/projects')} className="text-github-blue hover:underline mb-4">
-          ← Back to Projects
-        </button>
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">{project.name}</h1>
-            <p className="text-github-textSecondary mt-2">{project.description}</p>
-          </div>
-          {isAdmin && (
-            <div className="space-x-2">
-              <button
-                onClick={() => setShowCreateFileModal(true)}
-                className="px-4 py-2 bg-github-blue text-white rounded-md hover:bg-blue-600"
-              >
-                Create File
-              </button>
-              <button
-                onClick={() => setShowUploadModal(true)}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-              >
-                Upload File
-              </button>
+    <div className="page-shell">
+      <div className="w-full max-w-7xl space-y-6 animate-fade-in">
+        <div className="surface-card p-8">
+          <button
+            onClick={() => navigate('/projects')}
+            className="muted-button mb-6"
+          >
+            <i className="fas fa-arrow-left mr-2"></i>
+            Назад к проектам
+          </button>
+
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between mb-6">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-[#7289DA] font-semibold mb-2">Детали проекта</p>
+              <h1 className="text-4xl font-bold text-white mb-3">{project.name}</h1>
+              <p className="text-[#b9bbbe] leading-relaxed">{project.description}</p>
             </div>
-          )}
-        </div>
-      </div>
-
-      {error && (
-        <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-md">
-          <p className="text-red-800 dark:text-red-200">{error}</p>
-        </div>
-      )}
-
-      <div className="grid grid-cols-12 gap-6">
-        {/* File List */}
-        <div className="col-span-3 border border-github-border dark:bg-github-hover rounded-lg p-4">
-          <h3 className="text-lg font-semibold mb-4">Files</h3>
-          {project.files?.length > 0 ? (
-            <div className="space-y-2">
-              {project.files.map((file) => (
-                <div
-                  key={file.id}
-                  className={`p-2 rounded cursor-pointer hover:bg-github-dark ${
-                    selectedFile?.id === file.id ? 'bg-github-dark' : ''
-                  }`}
-                  onClick={() => setSelectedFile(file)}
+            {isAdmin && (
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowCreateFileModal(true)}
+                  className="primary-button"
                 >
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm truncate">{file.name}</span>
-                    {isAdmin && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteFile(file.id);
-                        }}
-                        className="text-red-500 hover:text-red-700 text-xs"
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-github-textSecondary">No files yet</p>
-          )}
-        </div>
+                  <i className="fas fa-file-plus mr-2"></i>
+                  Создать файл
+                </button>
+                <button
+                  onClick={() => setShowUploadModal(true)}
+                  className="muted-button"
+                >
+                  <i className="fas fa-upload mr-2"></i>
+                  Загрузить файл
+                </button>
+              </div>
+            )}
+          </div>
 
-        {/* File Content */}
-        <div className="col-span-9 border border-github-border dark:bg-github-hover rounded-lg p-6">
-          {selectedFile ? (
-            <>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">{selectedFile.name}</h3>
-                {isAdmin && !selectedFile.is_binary && (
-                  <div className="space-x-2">
-                    {editMode ? (
-                      <>
-                        <button
-                          onClick={handleSaveFile}
-                          className="px-3 py-1 bg-github-blue text-white rounded text-sm hover:bg-blue-600"
-                        >
-                          Save
-                        </button>
-                        <button
-                          onClick={() => setEditMode(false)}
-                          className="px-3 py-1 border border-github-border rounded text-sm hover:bg-github-dark"
-                        >
-                          Cancel
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        onClick={handleEditFile}
-                        className="px-3 py-1 border border-github-border rounded text-sm hover:bg-github-dark"
+          {error && (
+            <div className="mb-6 surface-section p-4 text-red-200 border-2 border-red-400/40 bg-red-500/20 rounded-xl">
+              <i className="fas fa-exclamation-circle mr-2"></i>
+              {error}
+            </div>
+          )}
+
+          <div className="grid grid-cols-12 gap-6">
+            {/* File List */}
+            <div className="col-span-12 md:col-span-3">
+              <div className="surface-section p-5 rounded-xl">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  <i className="fas fa-folder-open text-[#7289DA]"></i>
+                  Файлы
+                </h3>
+                {project.files?.length > 0 ? (
+                  <div className="space-y-2">
+                    {project.files.map((file) => (
+                      <div
+                        key={file.id}
+                        className={`p-3 rounded-lg cursor-pointer transition-all border ${
+                          selectedFile?.id === file.id 
+                            ? 'bg-[#5865F2] border-[#7289DA] text-white' 
+                            : 'border-transparent hover:bg-[#40444b] hover:border-[#7289DA]/50 text-[#b9bbbe]'
+                        }`}
+                        onClick={() => setSelectedFile(file)}
                       >
-                        Edit
-                      </button>
-                    )}
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium truncate flex items-center gap-2">
+                            <i className="fas fa-file text-xs"></i>
+                            {file.name}
+                          </span>
+                          {isAdmin && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteFile(file.id);
+                              }}
+                              className="text-[#d23369] hover:text-[#e04377] text-sm"
+                            >
+                              <i className="fas fa-trash"></i>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-[#b9bbbe] text-center py-4">
+                    <i className="fas fa-folder-open text-2xl mb-2 block text-[#7289DA]"></i>
+                    Нет файлов
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* File Content */}
+            <div className="col-span-12 md:col-span-9">
+              <div className="surface-section p-6 rounded-xl">
+                {selectedFile ? (
+                  <>
+                    <div className="flex justify-between items-center mb-5 pb-4 border-b border-white/10">
+                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                        <i className="fas fa-file-code text-[#7289DA]"></i>
+                        {selectedFile.name}
+                      </h3>
+                      {isAdmin && !selectedFile.is_binary && (
+                        <div className="flex gap-2">
+                          {editMode ? (
+                            <>
+                              <button
+                                onClick={handleSaveFile}
+                                className="primary-button"
+                              >
+                                <i className="fas fa-save mr-2"></i>
+                                Сохранить
+                              </button>
+                              <button
+                                onClick={() => setEditMode(false)}
+                                className="muted-button"
+                              >
+                                Отмена
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              onClick={handleEditFile}
+                              className="muted-button"
+                            >
+                              <i className="fas fa-edit mr-2"></i>
+                              Редактировать
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="overflow-auto max-h-[600px] rounded-lg">
+                      {editMode ? (
+                        <textarea
+                          value={editContent}
+                          onChange={(e) => setEditContent(e.target.value)}
+                          className="w-full h-96 p-4 font-mono text-sm bg-[#1f2230] border border-white/10 rounded-lg text-white"
+                        />
+                      ) : (
+                        renderFileContent(selectedFile)
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-20">
+                    <i className="fas fa-mouse-pointer text-5xl text-[#7289DA] mb-4"></i>
+                    <p className="text-[#b9bbbe]">Выберите файл для просмотра</p>
                   </div>
                 )}
               </div>
-              <div className="overflow-auto max-h-[70vh]">
-                {editMode ? (
-                  <textarea
-                    value={editContent}
-                    onChange={(e) => setEditContent(e.target.value)}
-                    className="w-full h-96 p-4 font-mono text-sm bg-github-darker border border-github-border rounded"
-                  />
-                ) : (
-                  renderFileContent(selectedFile)
-                )}
-              </div>
-            </>
-          ) : (
-            <p className="text-github-textSecondary">Select a file to view</p>
-          )}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Create File Modal */}
       {showCreateFileModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-github-darker border border-github-border rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-4">Create New File</h2>
-            <form onSubmit={handleCreateFile}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">File Name</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="example.js"
-                    className="w-full px-3 py-2 border border-github-border bg-github-hover rounded-md focus:outline-none focus:ring-github-blue focus:border-github-blue"
-                    value={newFile.name}
-                    onChange={(e) => setNewFile({ ...newFile, name: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">File Type</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="js, py, md, txt, etc."
-                    className="w-full px-3 py-2 border border-github-border bg-github-hover rounded-md focus:outline-none focus:ring-github-blue focus:border-github-blue"
-                    value={newFile.file_type}
-                    onChange={(e) => setNewFile({ ...newFile, file_type: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Content</label>
-                  <textarea
-                    rows="10"
-                    className="w-full px-3 py-2 font-mono text-sm border border-github-border bg-github-hover rounded-md focus:outline-none focus:ring-github-blue focus:border-github-blue"
-                    value={newFile.content}
-                    onChange={(e) => setNewFile({ ...newFile, content: e.target.value })}
-                  />
-                </div>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="surface-card p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-fade-in">
+            <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+              <i className="fas fa-file-plus text-[#7289DA]"></i>
+              Создать новый файл
+            </h2>
+            <form onSubmit={handleCreateFile} className="space-y-5">
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-[#b9bbbe]">Имя файла</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="example.js"
+                  className="input-field"
+                  value={newFile.name}
+                  onChange={(e) => setNewFile({ ...newFile, name: e.target.value })}
+                />
               </div>
-              <div className="mt-6 flex justify-end space-x-3">
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-[#b9bbbe]">Тип файла</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="js, py, md, txt и т.д."
+                  className="input-field"
+                  value={newFile.file_type}
+                  onChange={(e) => setNewFile({ ...newFile, file_type: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-[#b9bbbe]">Содержимое</label>
+                <textarea
+                  rows="12"
+                  className="input-field font-mono text-sm"
+                  placeholder="// Ваш код здесь..."
+                  value={newFile.content}
+                  onChange={(e) => setNewFile({ ...newFile, content: e.target.value })}
+                />
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowCreateFileModal(false)}
-                  className="px-4 py-2 border border-github-border rounded-md hover:bg-github-hover"
+                  className="muted-button"
                 >
-                  Cancel
+                  Отмена
                 </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-github-blue text-white rounded-md hover:bg-blue-600"
-                >
-                  Create
+                <button type="submit" className="primary-button">
+                  <i className="fas fa-check mr-2"></i>
+                  Создать
                 </button>
               </div>
             </form>
@@ -416,34 +450,39 @@ export default function ProjectDetail() {
 
       {/* Upload File Modal */}
       {showUploadModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-github-darker border border-github-border rounded-lg p-6 max-w-md w-full mx-4">
-            <h2 className="text-2xl font-bold mb-4">Upload File</h2>
-            <form onSubmit={handleUploadFile}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Select File</label>
-                  <input
-                    type="file"
-                    required
-                    className="w-full px-3 py-2 border border-github-border bg-github-hover rounded-md"
-                    onChange={(e) => setUploadFile(e.target.files[0])}
-                  />
-                </div>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="surface-card p-8 max-w-md w-full animate-fade-in">
+            <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+              <i className="fas fa-upload text-[#7289DA]"></i>
+              Загрузить файл
+            </h2>
+            <form onSubmit={handleUploadFile} className="space-y-5">
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-[#b9bbbe]">Выберите файл</label>
+                <input
+                  type="file"
+                  required
+                  className="input-field"
+                  onChange={(e) => setUploadFile(e.target.files[0])}
+                />
+                {uploadFile && (
+                  <p className="text-xs text-[#7289DA] mt-2">
+                    <i className="fas fa-check-circle mr-1"></i>
+                    Выбран: {uploadFile.name}
+                  </p>
+                )}
               </div>
-              <div className="mt-6 flex justify-end space-x-3">
+              <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowUploadModal(false)}
-                  className="px-4 py-2 border border-github-border rounded-md hover:bg-github-hover"
+                  className="muted-button"
                 >
-                  Cancel
+                  Отмена
                 </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-github-blue text-white rounded-md hover:bg-blue-600"
-                >
-                  Upload
+                <button type="submit" className="primary-button">
+                  <i className="fas fa-upload mr-2"></i>
+                  Загрузить
                 </button>
               </div>
             </form>
