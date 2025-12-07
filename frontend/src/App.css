@@ -136,6 +136,15 @@
   }
 }
 
+@keyframes spinRing {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .animate-fade-in {
   animation: fadeInCard 0.6s ease-out forwards;
 }
@@ -480,6 +489,27 @@
   position: relative;
 }
 
+.avatar-decoration {
+  position: absolute;
+  inset: -12px;
+  border-radius: 50%;
+  background: conic-gradient(
+      from 180deg,
+      rgba(114, 137, 218, 0.9),
+      rgba(231, 76, 140, 0.85),
+      rgba(114, 137, 218, 0.9)
+    ),
+    linear-gradient(135deg, rgba(47, 49, 54, 0.9), rgba(47, 49, 54, 0.9));
+  padding: 8px;
+  mask: radial-gradient(farthest-side, #000 80%, transparent 100%);
+  animation: spinRing 18s linear infinite;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.4));
+  opacity: 0.95;
+  z-index: 0;
+  pointer-events: none;
+}
+
+
 .profile-avatar {
   width: 140px;
   height: 140px;
@@ -488,6 +518,13 @@
   border: 6px solid #2f3136;
   background: #fff;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35), 0 0 0 4px #7289da;
+    position: relative;
+  z-index: 1;
+}
+
+.profile-avatar:hover {
+  transform: translateY(-2px);
+  transition: transform 0.2s ease;
 }
 
 .profile-name {
@@ -500,7 +537,7 @@
 
 .profile-subtitle {
   display: inline-block;
-  margin-top: 8px;
+  margin-top: 0;
   padding: 6px 14px;
   border-radius: 9999px;
   background: #ffffff;
