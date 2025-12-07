@@ -2,161 +2,167 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Chat() {
-    const { user, token, API_URL } = useAuth();
-    const [messages, setMessages] = useState([]);
-    const [inputMessage, setInputMessage] = useState('');
-    const [ws, setWs] = useState(null);
-    const [connected, setConnected] = useState(false);
-    const messagesEndRef = useRef(null);
+  const { user, token, API_URL } = useAuth();
+  const [messages, setMessages] = useState([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [ws, setWs] = useState(null);
+  const [connected, setConnected] = useState(false);
+  const messagesEndRef = useRef(null);
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
-    useEffect(() => {
-        if (!token) return;
+  useEffect(() => {
+    if (!token) return;
 
-        let websocketBase;
-        try {
-            const parsedUrl = new URL(API_URL);
-            const wsProtocol = parsedUrl.protocol === 'https:' ? 'wss:' : 'ws:';
-            const cleanedPath = parsedUrl.pathname.replace(/\/$/, '');
-            websocketBase = `${wsProtocol}//${parsedUrl.host}${cleanedPath}`;
-        } catch (error) {
-            websocketBase = API_URL.replace('http://', 'ws://').replace('https://', 'wss://');
-        }
+    let websocketBase;
+    try {
+      const parsedUrl = new URL(API_URL);
+      const wsProtocol = parsedUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+      const cleanedPath = parsedUrl.pathname.replace(/\/$/, '');
+      websocketBase = `${wsProtocol}//${parsedUrl.host}${cleanedPath}`;
+    } catch (error) {
+      websocketBase = API_URL.replace('http://', 'ws://').replace('https://', 'wss://');
+    }
 
     const websocket = new WebSocket(`${websocketBase}/api/ws/chat?token=${token}`);
 
     websocket.onopen = () => {
-        console.log('WebSocket connected');
-        setConnected(true);
+      console.log('WebSocket connected');
+      setConnected(true);
     };
 
     websocket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        console.log('Received:', data);
+      const data = JSON.parse(event.data);
+      console.log('Received:', data);
 
-        if (data.type === 'history') {
-            setMessages(data.messages);
-        } else if (data.type === 'message') {
-            setMessages((prev) => [...prev, data.data]);
-        } else if (data.type === 'user_joined') {
-            setMessages((prev) => [
-                ...prev, {
-                id: Date.now(),
-                    system: true,
-                    message: `${data.username} joined the chat`,
-                },
-            ]);
-        } else if (data.type === 'user_left') {
-            setMessages((prev) => [
-                ...prev, {
-                id: Date.now(),
-                    system: true,
-                    message: `${data.username} left the chat`,
-                },
-            ]);
-        }
+      if (data.type === 'history') {
+        setMessages(data.messages);
+      } else if (data.type === 'message') {
+        setMessages((prev) => [...prev, data.data]);
+      }
     };
 
     websocket.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        setConnected(false);
+      console.error('WebSocket error:', error);
+      setConnected(false);
     };
 
     websocket.onclose = () => {
-        console.log('WebSocket disconnected');
-        setConnected(false);
+      console.log('WebSocket disconnected');
+      setConnected(false);
     };
 
     setWs(websocket);
 
     return () => {
-        websocket.close();
-    };}, [token, API_URL]);
-
-    const sendMessage = (e) => {
-        e.preventDefault();
-        if (!inputMessage.trim() || !ws || !connected) return;
-
-        ws.send(JSON.stringify({ message: inputMessage }));
-        setInputMessage('');
+      websocket.close();
     };
+  }, [token, API_URL]);
 
-    return (
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="flex flex-col h-[calc(100vh-220px)] rounded-3xl border border-white/10 bg-slate-900/60 p-6 shadow-2xl backdrop-blur">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
-                    <div>
-                        <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Коммуникация</p>
-                        <h1 className="text-3xl font-bold text-white">Командный чат</h1>
-                    </div>
-                    <div className="flex items-center space-x-3 rounded-full border border-white/10 px-4 py-2 text-sm text-white/80">
-                        <span
-                            className={`h-2.5 w-2.5 rounded-full ${connected ? 'bg-emerald-400' : 'bg-rose-500'}`}/>
-                        <span>{connected ? 'Онлайн' : 'Нет подключения'}</span>
-                    </div>
-                </div>
-            <div className="flex-1 overflow-y-auto rounded-2xl border border-white/5 bg-slate-900/70 p-4 shadow-inner space-y-4">
-                {messages.length === 0 && (
-                    <div className="flex h-full items-center justify-center text-sm text-slate-400">
-                        Пока нет сообщений — начните разговор!
-                    </div>
-                )}
-            {messages.map((msg, index) => (
-                <div key={msg.id || `${msg.timestamp}-${index}`}>
-                    {msg.system ? (
-                        <div className="text-center text-xs uppercase tracking-widest text-white/60">
-                            {msg.message}
-                        </div>
-                    ) : (
-                        <div className={`flex ${msg.user_id === user?.id ? 'justify-end' : 'justify-start'}`}>
-                    <div
-                        className={`max-w-md rounded-2xl px-4 py-3 shadow-lg ${
-                            msg.user_id === user?.id
-                                ? 'bg-gradient-to-br from-indigo-500 to-blue-500 text-white'
-                                : 'bg-white/5 text-white border border-white/10 backdrop-blur'
-                        }`}>
-                    <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-white/80">
-                        <span>
-                            {msg.username}
-                            {msg.user_id === user?.id && ' (Вы)'}
-                        </span>
-                        <span className="text-white/60">
-                            {msg.timestamp && new Date(msg.timestamp).toLocaleTimeString()}
-                        </span>
-                    </div>
-                        <p className="mt-1 text-sm leading-relaxed text-white">{msg.message}</p>
-                    </div>
+  const sendMessage = (e) => {
+    e.preventDefault();
+    if (!inputMessage.trim() || !ws || !connected) return;
+
+    ws.send(JSON.stringify({ message: inputMessage }));
+    setInputMessage('');
+  };
+
+  return (
+    <div className="page-shell">
+      <div className="w-full max-w-5xl animate-fade-in">
+        <div className="surface-card p-8">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-[#7289DA] font-semibold mb-2">Коммуникация</p>
+              <h1 className="text-4xl font-bold text-white">Командный чат</h1>
+              <p className="text-[#b9bbbe] mt-2">Общайтесь с командой в реальном времени</p>
+            </div>
+            <div className="flex items-center gap-3 px-4 py-2 rounded-full border border-white/10 bg-[#40444b]">
+              <span className={`h-3 w-3 rounded-full ${connected ? 'bg-emerald-400 animate-pulse' : 'bg-rose-500'}`} />
+              <span className="text-sm text-white font-semibold">
+                {connected ? 'Онлайн' : 'Нет подключения'}
+              </span>
+            </div>
+          </div>
+
+          <div className="surface-section p-5 h-[500px] flex flex-col">
+            <div className="flex-1 overflow-y-auto space-y-4 mb-5">
+              {messages.length === 0 && (
+                <div className="flex h-full items-center justify-center text-center">
+                  <div>
+                    <i className="fas fa-comments text-5xl text-[#7289DA] mb-3"></i>
+                    <p className="text-[#b9bbbe]">Пока нет сообщений — начните разговор!</p>
+                  </div>
                 </div>
               )}
+              {messages.map((msg, index) => (
+                <div key={msg.id || `${msg.timestamp}-${index}`}>
+                  {msg.system ? (
+                    <div className="text-center py-2">
+                      <span className="text-xs uppercase tracking-widest text-[#7289DA] bg-[#40444b] px-3 py-1 rounded-full">
+                        {msg.message}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className={`flex ${msg.user_id === user?.id ? 'justify-end' : 'justify-start'}`}>
+                      <div
+                        className={`max-w-md rounded-2xl px-5 py-3 shadow-lg ${
+                          msg.user_id === user?.id
+                            ? 'bg-gradient-to-br from-[#5865F2] to-[#7289DA] text-white'
+                            : 'bg-[#40444b] text-white border border-white/10'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 text-xs font-semibold mb-1 opacity-80">
+                          <i className="fas fa-user-circle"></i>
+                          <span>
+                            {msg.username}
+                            {msg.user_id === user?.id && ' (Вы)'}
+                          </span>
+                          {msg.timestamp && (
+                            <span className="opacity-60">
+                              {new Date(msg.timestamp).toLocaleTimeString('ru-RU', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm leading-relaxed">{msg.message}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
             </div>
-          ))}
-            <div ref={messagesEndRef} />
-        </div>
 
-        <form onSubmit={sendMessage} className="mt-4 flex flex-col gap-3 sm:flex-row">
-            <input
+            <form onSubmit={sendMessage} className="flex gap-3">
+              <input
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 placeholder={connected ? 'Введите сообщение…' : 'Подключение к чату...'}
                 disabled={!connected}
-                className="flex-1 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-white placeholder-white/40 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
-            />
-            <button
+                className="input-field flex-1"
+              />
+              <button
                 type="submit"
                 disabled={!connected || !inputMessage.trim()}
-                className="rounded-2xl bg-gradient-to-r from-indigo-500 to-blue-500 px-8 py-3 text-sm font-semibold uppercase tracking-widest text-white shadow-lg transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
+                className="primary-button px-6"
+              >
+                <i className="fas fa-paper-plane mr-2"></i>
                 Отправить
-            </button>
-        </form>
-            </div>
+              </button>
+            </form>
+          </div>
         </div>
+      </div>
+    </div>
   );
 }
