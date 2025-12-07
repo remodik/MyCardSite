@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import Optional, List, Dict, Any
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect, status
@@ -107,7 +107,6 @@ class ConnectionManager:
         self.active_connections: List[Dict[str, Any]] = []
 
     async def connect(self, websocket: WebSocket, user_id: str, username: str) -> None:
-        await websocket.accept()
         self.active_connections.append({
                 "websocket": websocket,
                 "user_id": user_id,
@@ -118,11 +117,15 @@ class ConnectionManager:
         self.active_connections = [conn for conn in self.active_connections if conn["websocket"] != websocket]
 
     async def broadcast(self, message: dict) -> None:
+        disconnected = []
         for connection in self.active_connections:
             try:
                 await connection["websocket"].send_json(message)
             except Exception:
-                pass
+                disconnected.append(connection["websocket"])
+
+        for ws in disconnected:
+            self.disconnect(ws)
 
 
 manager = ConnectionManager()
@@ -684,7 +687,6 @@ async def upload_file(
 ) -> Dict[str, Any]:
     await ensure_db_connection(session)
     content = await file.read()
-    content = await file.read()
     file_type = file.filename.split(".")[-1] if "." in file.filename else "txt"
 
     if file_type in [
@@ -869,35 +871,58 @@ async def update_user_role(
 
 @app.websocket("/api/ws/chat")
 async def websocket_chat(websocket: WebSocket, token: str) -> None:
-    await websocket.accept()
     user = None
+
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = payload.get("sub")
-        
-        if not user_id:
-            await websocket.close(code=1008)
+        await websocket.accept()
+
+        # Валидация токена
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            user_id = payload.get("sub")
+
+            if not user_id:
+                await websocket.close(code=1008, reason="Invalid token")
+                return
+        except JWTError:
+            await websocket.close(code=1008, reason="Invalid token")
             return
-        
-        async with async_session_factory() as db_session:
-            user_result = await db_session.execute(select(User).where(User.id == user_id))
+
+        # Проверяем пользователя в БД
+        async with async_session_factory() as session:
+            user_result = await session.execute(
+                select(User).where(User.id == user_id)
+            )
             user = user_result.scalar_one_or_none()
+
             if not user:
-                await websocket.close(code=1008)
+                await websocket.close(code=1008, reason="User not found")
                 return
 
+            # Регистрируем соединение (БЕЗ accept внутри)
             await manager.connect(websocket, user_id, user.username)
 
-            history_result = await db_session.execute(
-                select(ChatMessage).order_by(ChatMessage.timestamp.desc()).limit(50)
+            # Отправляем историю
+            history_result = await session.execute(
+                select(ChatMessage)
+                .order_by(ChatMessage.timestamp.desc())
+                .limit(50)
             )
-            messages = [chat_message_to_dict(msg) for msg in history_result.scalars().all()][::-1]
-            await websocket.send_json({"type": "history", "messages": messages})
+            messages = [
+                chat_message_to_dict(msg)
+                for msg in history_result.scalars().all()
+            ][::-1]
 
-            await manager.broadcast({"type": "user_joined", "username": user.username})
+            await websocket.send_json({
+                "type": "history",
+                "messages": messages
+            })
 
-            while True:
-                data = await websocket.receive_json()
+        # Основной цикл (создаем новую сессию для каждого сообщения)
+        while True:
+            data = await websocket.receive_json()
+
+            async with async_session_factory() as session:
                 message_id = str(uuid.uuid4())
                 chat_message = ChatMessage(
                     id=message_id,
@@ -906,21 +931,31 @@ async def websocket_chat(websocket: WebSocket, token: str) -> None:
                     message=data.get("message", ""),
                     timestamp=datetime.now(),
                 )
-                db_session.add(chat_message)
-                await db_session.commit()
+                session.add(chat_message)
+                await session.commit()
 
-                await manager.broadcast({"type": "message", "data": chat_message_to_dict(chat_message)})
-            
+                await manager.broadcast({
+                    "type": "message",
+                    "data": chat_message_to_dict(chat_message)
+                })
+
     except WebSocketDisconnect:
-        manager.disconnect(websocket)
-        if user:
-            await manager.broadcast({"type": "user_left", "username": user.username})
-    except Exception as exc:  # pragma: no cover - logging for runtime issues
+        # Нормальное отключение клиента
+        pass
+
+    except Exception as exc:
         print(f"WebSocket error: {exc}")
+        import traceback
+        traceback.print_exc()
+
+    finally:
+        # Очистка при любом завершении
         manager.disconnect(websocket)
-        if user:
-            await manager.broadcast({"type": "user_left", "username": user.username})
-        await websocket.close(code=1011)
+
+        # Безопасное закрытие
+        with suppress(Exception):
+            if websocket.client_state.name == "CONNECTED":
+                await websocket.close(code=1000)
 
 
 @app.get("/api/health")
