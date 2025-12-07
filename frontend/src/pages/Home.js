@@ -329,52 +329,6 @@ function Home() {
             </div>
           </div>
         </div>
-
-        {user && (
-          <div className="surface-card p-6 animate-fade-in">
-            <div className="flex gap-3 mb-4 border-b border-white/10 pb-3">
-              <button
-                onClick={() => setActiveTab('projects')}
-                className={`muted-button px-5 py-2 ${
-                  activeTab === 'projects' ? 'border-[#6b8fc9] text-[#6b8fc9] bg-[#4a6fa5]/10' : ''
-                }`}
-              >
-                <i className="fas fa-folder mr-2"></i>
-                Проекты
-              </button>
-              <button
-                onClick={() => setActiveTab('chat')}
-                className={`muted-button px-5 py-2 ${
-                  activeTab === 'chat' ? 'border-[#6b8fc9] text-[#6b8fc9] bg-[#4a6fa5]/10' : ''
-                }`}
-              >
-                <i className="fas fa-comments mr-2"></i>
-                Чат
-              </button>
-            </div>
-
-            <div className="surface-section p-6 text-center">
-              {activeTab === 'projects' && (
-                <>
-                  <h3 className="text-2xl font-semibold text-white mb-3">Мои проекты</h3>
-                  <p className="text-slate-300 mb-5">Здесь будут отображаться все ваши проекты</p>
-                  <Link to="/projects" className="primary-button inline-block">
-                    Перейти к проектам
-                  </Link>
-                </>
-              )}
-              {activeTab === 'chat' && (
-                <>
-                  <h3 className="text-2xl font-semibold text-white mb-3">Чат</h3>
-                  <p className="text-slate-300 mb-5">Общайтесь с другими пользователями в реальном времени</p>
-                  <Link to="/chat" className="primary-button inline-block">
-                    Открыть чат
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
