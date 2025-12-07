@@ -7,7 +7,7 @@ API_URL = "http://0.0.0.0:8001"
 
 async def create_demo_data():
     response = requests.post(f"{API_URL}/api/auth/login", json={
-        "username": "remod3",
+        "username": "remodik",
         "password": "domer123"
     })
     print("STATUS", response.status_code)
