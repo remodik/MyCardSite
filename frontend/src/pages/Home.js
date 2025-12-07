@@ -84,7 +84,6 @@ const setLocalLikes = (count) => {
 
 function Home() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('projects');
   const [viewsCount, setViewsCount] = useState(0);
   const [likesCount, setLikesCount] = useState(() => getLocalLikes());
   const [hasLiked, setHasLiked] = useState(() => hasLikedLocally());
@@ -173,10 +172,10 @@ function Home() {
   };
 
   return (
-    <div className="page-shell">
-      <div className="w-full max-w-5xl space-y-8">
+    <div className="profile-page">
+      <div className="w-full max-w-5xl flex flex-col items-center gap-4">
         {!user && (
-          <div className="flex justify-end gap-3 animate-fade-in">
+          <div className="auth-actions animate-fade-in">
             <Link to="/login" className="primary-button">
               Вход
             </Link>
@@ -186,44 +185,36 @@ function Home() {
           </div>
         )}
 
-        <div className="surface-card overflow-hidden animate-fade-in">
-          <div className="h-48 relative overflow-hidden">
-            <div
-              className="w-full h-full bg-cover bg-center"
-              style={{ backgroundImage: 'url(/blue_mybanner.gif)' }}
-            />
-          </div>
+        <div className="profile-card">
+          <div
+            className="profile-banner"
+            style={{ backgroundImage: 'url(/blue_mybanner.gif)' }}
+          ></div>
 
-          <div className="relative -mt-16 text-center px-8 pb-6">
-            <div className="inline-block relative mb-4">
-              <img
-                src="/blue_avatar.png"
-                alt="Avatar"
-                className="w-28 h-28 rounded-full object-cover shadow-xl bg-white border-4 border-white"
-              />
+          <div className="profile-header">
+            <div className="avatar-ring">
+              <img src="/blue_avatar.png" alt="Avatar" className="profile-avatar" />
             </div>
-
-            <h1 className="text-3xl font-bold text-white mb-3 drop-shadow-lg">remod3</h1>
-
+            <div className="profile-name">remod3</div>
             <div className="flex flex-col gap-2 items-center">
-              <span className="pill-tag" style={{ background: 'white', color: '#4a6fa5', borderColor: 'white' }}>チェリー | せんちゃ</span>
-              <span className="pill-tag" style={{ background: 'white', color: '#4a6fa5', borderColor: 'white' }}>ベテルギウスロマネ・コンティ</span>
+              <span className="profile-subtitle">チェリー | せんちゃ</span>
+              <span className="profile-subtitle">ベテルギウスロマネ・コンティ</span>
             </div>
           </div>
 
-          <div className="px-8 pb-8 space-y-6">
-            <div className="surface-section p-5">
-              <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                <i className="fas fa-heart text-[#e74c8c]"></i>
-                Обо мне
-              </h2>
-              <p className="text-slate-200/90 mb-2">
+          <div className="profile-content">
+            <div className="section-block">
+              <div className="section-title">
+                <i className="bi bi-heart-fill" aria-hidden="true"></i>
+                <span>Обо мне</span>
+              </div>
+              <p className="section-text">
                 Привет! Меня зовут Илья, мне 17 лет, и я обычный начинающий разработчик на Python, который любит аниме.
               </p>
-              <p className="text-slate-200/90 mb-2">
+              <p className="section-text">
                 Моя цель — создать универсального Discord бота, который будет уметь всё! (Ну, или почти)
               </p>
-              <p className="text-slate-200/90">
+              <p className="section-text">
                 День рождения{' '}
                 <span className="text-[#6b8fc9] font-semibold">
                   {birthdayInfo.relativeTime}
@@ -232,97 +223,72 @@ function Home() {
               </p>
             </div>
 
-            <div className="surface-section p-5">
-              <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                <i className="fas fa-star text-[#6b8fc9]"></i>
-                Увлечения
-              </h2>
-              <div className="flex flex-wrap gap-2">
+            <div className="section-block">
+              <div className="section-title">
+                <i className="bi bi-star-fill accent-blue" aria-hidden="true"></i>
+                <span>Увлечения</span>
+              </div>
+              <div className="chip-set">
                 {['Python', 'Discord API', 'Py-cord/disnake', 'HTML/CSS', 'Просмотр аниме'].map((skill) => (
-                  <span key={skill} className="pill-tag">
+                  <span key={skill} className="chip">
                     {skill}
                   </span>
                 ))}
               </div>
             </div>
 
-            <div className="surface-section p-5">
-              <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                <i className="fas fa-envelope text-[#6b8fc9]"></i>
-                Контакты
-              </h2>
-              <div className="space-y-2 text-slate-200/90">
-                <div className="flex items-center gap-3">
-                  <i className="fas fa-envelope text-[#e74c8c] w-5"></i>
+            <div className="section-block">
+              <div className="section-title">
+                <i className="bi bi-envelope-fill accent-blue" aria-hidden="true"></i>
+                <span>Контакты</span>
+              </div>
+              <div className="contact-row">
+                <div className="contact-item">
+                  <i className="bi bi-envelope-fill" aria-hidden="true"></i>
                   <span>slenderzet@gmail.com</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <i className="fas fa-map-marker-alt text-[#e74c8c] w-5"></i>
+                <div className="contact-item">
+                  <i className="bi bi-geo-alt-fill" aria-hidden="true"></i>
                   <span>Токио, Япония (мечтаю там побывать)</span>
                 </div>
               </div>
             </div>
 
-            <div className="surface-section p-5 flex flex-col gap-4 items-center">
-              <div className="flex flex-wrap justify-center gap-4 text-[#e74c8c] text-2xl">
-                <a
-                  href="https://vk.com/remod3"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="VK"
-                  className="hover:text-[#f06ba4] transition-colors"
-                >
-                  <i className="fab fa-vk"></i>
+            <div className="section-block flex flex-col gap-4 items-center">
+              <div className="social-grid">
+                <a href="https://vk.com/remod3" target="_blank" rel="noopener noreferrer" aria-label="VK">
+                  <i className="bi bi-people-fill" aria-hidden="true"></i>
                 </a>
-                <a
-                  href="https://t.me/remod3"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Telegram"
-                  className="hover:text-[#f06ba4] transition-colors"
-                >
-                  <i className="fab fa-telegram"></i>
+                <a href="https://t.me/remod3" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
+                  <i className="bi bi-telegram" aria-hidden="true"></i>
                 </a>
-                <a
-                  href="https://discord.gg/nKkQdDgWfC"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Discord Server"
-                  className="hover:text-[#f06ba4] transition-colors"
-                >
-                  <i className="fab fa-discord"></i>
+                <a href="https://discord.gg/nKkQdDgWfC" target="_blank" rel="noopener noreferrer" aria-label="Discord Server">
+                  <i className="bi bi-discord" aria-hidden="true"></i>
                 </a>
-                <a
-                  href="https://discord.com/users/743864658951274528"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Discord Profile"
-                  className="hover:text-[#f06ba4] transition-colors"
-                >
-                  <i className="fab fa-discord"></i>
+                <a href="https://discord.com/users/743864658951274528" target="_blank" rel="noopener noreferrer" aria-label="Discord Profile">
+                  <i className="bi bi-discord" aria-hidden="true"></i>
                 </a>
                 <a
                   href="https://open.spotify.com/user/31hx3sueaixdsbody6s6lligjm6a"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Spotify"
-                  className="hover:text-[#f06ba4] transition-colors"
                 >
-                  <i className="fab fa-spotify"></i>
+                  <i className="bi bi-spotify" aria-hidden="true"></i>
                 </a>
               </div>
 
-              <div className="flex justify-center gap-8 text-[#6b8fc9]">
+              <div className="stats-row">
                 <div className="flex items-center gap-2">
-                  <i className="fas fa-eye"></i>
+                  <i className="bi bi-eye-fill" aria-hidden="true"></i>
                   <span>{viewsCount}</span>
                 </div>
                 <button
                   type="button"
                   onClick={handleLike}
-                  className={`flex items-center gap-2 transition-colors ${hasLiked ? 'text-[#e74c8c]' : 'hover:text-[#8aa5d6]'}`}
+                  className={`stat-button ${hasLiked ? 'text-[#e74c8c]' : ''}`}
                 >
-                  <i className={`${hasLiked ? 'fas' : 'far'} fa-heart`}></i>
+                  <i className={`bi ${hasLiked ? 'bi-heart-fill' : 'bi-heart'}`} aria-hidden="true"></i>
                   <span>{likesCount}</span>
                 </button>
               </div>
