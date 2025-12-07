@@ -215,9 +215,7 @@
 
 .app-background {
   min-height: 100vh;
-  background: radial-gradient(circle at 15% 15%, rgba(74, 111, 165, 0.12), transparent 35%),
-    radial-gradient(circle at 85% 75%, rgba(231, 76, 140, 0.08), transparent 35%),
-    linear-gradient(135deg, var(--bg-start) 0%, var(--bg-mid) 50%, #0f1729 100%);
+  background: linear-gradient(135deg, #1e2a4a 0%, #2c3e50 100%);
 }
 
 .page-shell {
@@ -441,4 +439,221 @@
   color: inherit;
   padding: 0.1em 0.2em;
   border-radius: 2px;
+}
+
+/* Profile homepage styling */
+.profile-page {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 32px 16px 64px;
+}
+
+.profile-card {
+  width: 100%;
+  max-width: 560px;
+  background: linear-gradient(to bottom, #5865f2 0%, #2f3136 100%);
+  border-radius: 20px;
+  border: 2px solid #7289da;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+  overflow: hidden;
+  position: relative;
+  animation: fadeInCard 0.6s ease-out forwards;
+}
+
+.profile-banner {
+  height: 180px;
+  background: linear-gradient(135deg, #5865f2 0%, #7289da 100%);
+  background-size: cover;
+  background-position: center;
+}
+
+.profile-header {
+  padding: 0 28px 24px;
+  text-align: center;
+  margin-top: -90px;
+  position: relative;
+}
+
+.avatar-ring {
+  display: inline-block;
+  position: relative;
+}
+
+.profile-avatar {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 6px solid #2f3136;
+  background: #fff;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35), 0 0 0 4px #7289da;
+}
+
+.profile-name {
+  font-size: 28px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-top: 12px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+
+.profile-subtitle {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: #4a6fa5;
+  font-weight: 700;
+  border: 1px solid #ffffff;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.profile-content {
+  padding: 0 24px 28px;
+  background: #2f3136;
+}
+
+.section-block {
+  background: #2f3136;
+  border: 1px solid #40444b;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  margin-bottom: 18px;
+  opacity: 0;
+  transform: translateY(12px);
+  animation: fadeInSection 0.6s ease-out forwards;
+}
+
+.section-block:nth-of-type(1) {
+  animation-delay: 0.3s;
+}
+
+.section-block:nth-of-type(2) {
+  animation-delay: 0.55s;
+}
+
+.section-block:nth-of-type(3) {
+  animation-delay: 0.8s;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  color: #ffffff;
+  margin-bottom: 14px;
+  border-bottom: 2px solid #40444b;
+  padding-bottom: 10px;
+}
+
+.section-title i {
+  font-size: 22px;
+  color: #e74c8c;
+}
+
+.section-title .accent-blue {
+  color: #6b8fc9;
+}
+
+.section-text {
+  color: #cbd5e1;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.chip-set {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.chip {
+  background: #40444b;
+  color: #ffffff;
+  padding: 8px 14px;
+  border-radius: 16px;
+  border: 1px solid #5865f2;
+  font-weight: 700;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.chip:hover {
+  background: #5865f2;
+  transform: translateY(-2px);
+}
+
+.contact-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: #cbd5e1;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.contact-item i {
+  color: #e74c8c;
+  width: 24px;
+  text-align: center;
+}
+
+.social-grid {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  color: #e74c8c;
+  font-size: 28px;
+}
+
+.social-grid a {
+  color: inherit;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.social-grid a:hover {
+  color: #f06ba4;
+  transform: translateY(-3px);
+}
+
+.stats-row {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  align-items: center;
+  color: #6b8fc9;
+  margin-top: 8px;
+}
+
+.stat-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-weight: 700;
+  transition: color 0.2s ease;
+}
+
+.stat-button:hover {
+  color: #e74c8c;
+}
+
+.auth-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 16px;
+  width: 100%;
+  max-width: 560px;
 }

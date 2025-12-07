@@ -6,7 +6,10 @@
 
 # Frontend build artifacts
 node_modules/
-frontend/node_modules/-e 
+frontend/node_modules/-e
+frontend/build/
+frontend/.yarn/
+frontend/.yarnrc.yml
 # Environment files
 *.env
 *.env.*
