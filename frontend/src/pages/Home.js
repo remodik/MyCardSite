@@ -1,175 +1,171 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 
 const BIRTHDAY_TIMESTAMP = 1791406800;
 
 const pluralRules = new Intl.PluralRules('ru');
 
 const timeForms = {
-  год: ['год', 'года', 'лет'],
-  месяц: ['месяц', 'месяца', 'месяцев'],
-  неделя: ['неделя', 'недели', 'недель'],
-  день: ['день', 'дня', 'дней'],
-  час: ['час', 'часа', 'часов'],
-  минута: ['минута', 'минуты', 'минут'],
+    год: ['год', 'года', 'лет'],
+    месяц: ['месяц', 'месяца', 'месяцев'],
+    неделя: ['неделя', 'недели', 'недель'],
+    день: ['день', 'дня', 'дней'],
+    час: ['час', 'часа', 'часов'],
+    минута: ['минута', 'минуты', 'минут'],
 };
 
 const formatRelativeTime = (seconds) => {
-  if (seconds <= 0) {
-    return 'сегодня! 🎉';
-  }
-
-  const intervals = {
-    год: 31536000,
-    месяц: 2592000,
-    неделя: 604800,
-    день: 86400,
-    час: 3600,
-    минута: 60,
-  };
-
-  for (const [unit, secs] of Object.entries(intervals)) {
-    const count = Math.floor(seconds / secs);
-    if (count >= 1) {
-      const rule = pluralRules.select(count);
-      const forms = timeForms[unit];
-      const form = rule === 'one' ? forms[0] : rule === 'few' ? forms[1] : forms[2];
-      return `через ${count} ${form}`;
+    if (seconds <= 0) {
+        return 'сегодня! 🎉';
     }
-  }
 
-  return 'скоро!';
+    const intervals = {
+        год: 31536000,
+        месяц: 2592000,
+        неделя: 604800,
+        день: 86400,
+        час: 3600,
+        минута: 60,
+    };
+
+    for (const [unit, secs] of Object.entries(intervals)) {
+        const count = Math.floor(seconds / secs);
+        if (count >= 1) {
+            const rule = pluralRules.select(count);
+            const forms = timeForms[unit];
+            const form = rule === 'one' ? forms[0] : rule === 'few' ? forms[1] : forms[2];
+            return `через ${count} ${form}`;
+        }
+    }
+
+    return 'скоро!';
 };
 
 const safeStorage = () => {
-  try {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      return window.localStorage;
+    try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+            return window.localStorage;
+        }
+    } catch (error) {
+        return null;
     }
-  } catch (error) {
     return null;
-  }
-  return null;
 };
 
 const getLocalLikes = () => {
-  const storage = safeStorage();
-  if (!storage) {
-    return 0;
-  }
+    const storage = safeStorage();
+    if (!storage) {
+        return 0;
+    }
 
-  const likes = storage.getItem('pageLikes');
-  return likes ? parseInt(likes, 10) || 0 : 0;
+const likes = storage.getItem('pageLikes');
+    return likes ? parseInt(likes, 10) || 0 : 0;
 };
 
 const hasLikedLocally = () => {
-  const storage = safeStorage();
-  if (!storage) {
-    return false;
-  }
-  return storage.getItem('hasLiked') === 'true';
+    const storage = safeStorage();
+    if (!storage) {
+        return false;
+    }
+    return storage.getItem('hasLiked') === 'true';
 };
 
 const setLocalLikes = (count) => {
-  const storage = safeStorage();
-  if (!storage) {
-    return;
-  }
+    const storage = safeStorage();
+    if (!storage) {
+        return;
+    }
 
-  const likesValue = Number.isFinite(count) ? count : 0;
-  storage.setItem('pageLikes', likesValue.toString());
-  storage.setItem('hasLiked', 'true');
+    const likesValue = Number.isFinite(count) ? count : 0;
+    storage.setItem('pageLikes', likesValue.toString());
+    storage.setItem('hasLiked', 'true');
 };
 
 function Home() {
-  const { user } = useAuth();
-  const [viewsCount, setViewsCount] = useState(0);
-  const [likesCount, setLikesCount] = useState(() => getLocalLikes());
-  const [hasLiked, setHasLiked] = useState(() => hasLikedLocally());
-  const [birthdayInfo, setBirthdayInfo] = useState({
-    relativeTime: '',
-    fullDate: '',
-  });
-
-  const updateBirthdayCountdown = useCallback(() => {
-    const now = Math.floor(Date.now() / 1000);
-    const diff = BIRTHDAY_TIMESTAMP - now;
-    const fullDate = new Date(BIRTHDAY_TIMESTAMP * 1000).toLocaleDateString('ru-RU', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
+    const [viewsCount, setViewsCount] = useState(0);
+    const [likesCount, setLikesCount] = useState(() => getLocalLikes());
+    const [hasLiked, setHasLiked] = useState(() => hasLikedLocally());
+    const [birthdayInfo, setBirthdayInfo] = useState({
+        relativeTime: '',
+        fullDate: '',
     });
+
+    const updateBirthdayCountdown = useCallback(() => {
+        const now = Math.floor(Date.now() / 1000);
+        const diff = BIRTHDAY_TIMESTAMP - now;
+        const fullDate = new Date(BIRTHDAY_TIMESTAMP * 1000).toLocaleDateString('ru-RU', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+        });
 
     setBirthdayInfo({
-      relativeTime: formatRelativeTime(diff),
-      fullDate,
+        relativeTime: formatRelativeTime(diff),
+        fullDate,
     });
-  }, []);
+    }, []);
 
-  useEffect(() => {
-    updateBirthdayCountdown();
-    const intervalId = setInterval(updateBirthdayCountdown, 60000);
-    return () => clearInterval(intervalId);
-  }, [updateBirthdayCountdown]);
+    useEffect(() => {
+        updateBirthdayCountdown();
+        const intervalId = setInterval(updateBirthdayCountdown, 60000);
+        return () => clearInterval(intervalId);
+    }, [updateBirthdayCountdown]);
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await fetch('/stats.php');
-        if (!response.ok) {
-          throw new Error('Failed to fetch stats');
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const response = await fetch('/stats.php');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch stats');
+                }
+
+                const data = await response.json();
+                setViewsCount(Number(data.views) || 0);
+                const serverLikes = Number(data.likes);
+                setLikesCount(Number.isFinite(serverLikes) ? serverLikes : getLocalLikes());
+                setHasLiked(Boolean(data.hasLiked) || hasLikedLocally());
+            } catch (error) {
+                setViewsCount(0);
+                setLikesCount(getLocalLikes());
+                setHasLiked(hasLikedLocally());
+            }
+        };
+        fetchStats();
+    }, []);
+
+    const handleLike = async () => {
+        if (hasLikedLocally()) {
+            window.alert('Вы уже поставили лайк! ❤️');
+            setHasLiked(true);
+            return;
         }
 
-        const data = await response.json();
-        setViewsCount(Number(data.views) || 0);
-        const serverLikes = Number(data.likes);
-        setLikesCount(Number.isFinite(serverLikes) ? serverLikes : getLocalLikes());
-        setHasLiked(Boolean(data.hasLiked) || hasLikedLocally());
-      } catch (error) {
-        setViewsCount(0);
-        setLikesCount(getLocalLikes());
-        setHasLiked(hasLikedLocally());
-      }
+        try {
+            const response = await fetch('/stats.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'like' }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error('Like request failed');
+            }
+
+            const newLikes = Number(result.likes);
+            const likesValue = Number.isFinite(newLikes) ? newLikes : likesCount + 1;
+            setLikesCount(likesValue);
+            setLocalLikes(likesValue);
+            setHasLiked(true);
+            window.alert('Спасибо за лайк! ❤️');
+        } catch (error) {
+            const fallbackLikes = likesCount + 1;
+            setLikesCount(fallbackLikes);
+            setLocalLikes(fallbackLikes);
+            setHasLiked(true);
+            window.alert('Спасибо за лайк! ❤️');
+        }
     };
-
-    fetchStats();
-  }, []);
-
-  const handleLike = async () => {
-    if (hasLikedLocally()) {
-      window.alert('Вы уже поставили лайк! ❤️');
-      setHasLiked(true);
-      return;
-    }
-
-    try {
-      const response = await fetch('/stats.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'like' }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error('Like request failed');
-      }
-
-      const newLikes = Number(result.likes);
-      const likesValue = Number.isFinite(newLikes) ? newLikes : likesCount + 1;
-      setLikesCount(likesValue);
-      setLocalLikes(likesValue);
-      setHasLiked(true);
-      window.alert('Спасибо за лайк! ❤️');
-    } catch (error) {
-      const fallbackLikes = likesCount + 1;
-      setLikesCount(fallbackLikes);
-      setLocalLikes(fallbackLikes);
-      setHasLiked(true);
-      window.alert('Спасибо за лайк! ❤️');
-    }
-  };
 
   return (
     <div className="profile-page">
