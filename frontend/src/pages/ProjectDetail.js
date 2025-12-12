@@ -5,6 +5,10 @@ import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import 'katex/dist/katex.min.css';
+import rehypeKatex from 'rehype-katex';
+import remarkMath from 'remark-math'
+import remarkGfm from 'remark-gfm';
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -59,7 +63,7 @@ export default function ProjectDetail() {
           </code>
         );
       },
-        a({ href, children, ...props }) {
+      a({ href, children, ...props }) {
         const isExternal = href?.startsWith('http');
         return (
           <a
@@ -71,6 +75,82 @@ export default function ProjectDetail() {
             {children}
           </a>
         );
+      },
+      table({ children }) {
+        return (
+          <div className="overflow-x-auto my-4">
+            <table className="w-full border-collapse border border-[#40444b] bg-[#2c2f33]">
+              {children}
+            </table>
+          </div>
+        );
+      },
+      thead({ children }) {
+        return (
+          <thead className="bg-[#36393f] border-b border-[#40444b]">
+            {children}
+          </thead>
+        );
+      },
+      tbody({ children }) {
+        return <tbody>{children}</tbody>;
+      },
+      tr({ children }) {
+        return <tr className="border-b border-[#40444b]">{children}</tr>;
+      },
+      th({ children }) {
+        return (
+          <th className="px-4 py-3 text-left font-bold text-[#7289DA] border-r border-[#40444b] last:border-r-0">
+            {children}
+          </th>
+        );
+      },
+      td({ children }) {
+        return (
+          <td className="px-4 py-3 text-[#b9bbbe] border-r border-[#40444b] last:border-r-0">
+            {children}
+          </td>
+        );
+      },
+      h1({ children }) {
+        return <h1 className="text-3xl font-bold text-white my-4 mt-6">{children}</h1>;
+      },
+      h2({ children }) {
+        return <h2 className="text-2xl font-bold text-[#7289DA] my-3 mt-5">{children}</h2>;
+      },
+      h3({ children }) {
+        return <h3 className="text-xl font-bold text-[#99aab5] my-2 mt-4">{children}</h3>;
+      },
+      h4({ children }) {
+        return <h4 className="text-lg font-bold text-[#b9bbbe] my-2">{children}</h4>;
+      },
+      blockquote({ children }) {
+        return (
+          <blockquote className="border-l-4 border-[#7289DA] pl-4 my-4 text-[#99aab5] italic bg-[#36393f]/50 py-2 pr-4 rounded">
+            {children}
+          </blockquote>
+        );
+      },
+      ul({ children }) {
+        return <ul className="list-disc list-inside my-2 text-[#b9bbbe] space-y-1">{children}</ul>;
+      },
+      ol({ children }) {
+        return <ol className="list-decimal list-inside my-2 text-[#b9bbbe] space-y-1">{children}</ol>;
+      },
+      li({ children }) {
+        return <li className="ml-2">{children}</li>;
+      },
+      hr() {
+        return <hr className="my-6 border-t border-[#40444b]" />;
+      },
+      strong({ children }) {
+        return <strong className="font-bold text-white">{children}</strong>;
+      },
+      em({ children }) {
+        return <em className="italic text-[#99aab5]">{children}</em>;
+      },
+      p({ children }) {
+        return <p className="my-2 text-[#b9bbbe] leading-relaxed">{children}</p>;
       },
     }),
     []
@@ -171,8 +251,14 @@ export default function ProjectDetail() {
 
     if (file.file_type === 'md') {
       return (
-        <div className="prose dark:prose-invert max-w-none">
-          <ReactMarkdown components={markdownComponents}>{file.content}</ReactMarkdown>
+        <div className="prose dark:prose-invert max-w-none text-[#b9bbbe]">
+          <ReactMarkdown
+            components={markdownComponents}
+            remarkPlugins={[remarkGfm, remarkMath]}
+            rehypePlugins={[rehypeKatex]}
+          >
+            {file.content}
+          </ReactMarkdown>
         </div>
       );
     }
@@ -277,7 +363,6 @@ export default function ProjectDetail() {
           )}
 
           <div className="grid grid-cols-12 gap-6">
-            {/* File List */}
             <div className="col-span-12 md:col-span-3">
               <div className="surface-section p-5 rounded-xl">
                 <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
@@ -325,7 +410,6 @@ export default function ProjectDetail() {
               </div>
             </div>
 
-            {/* File Content */}
             <div className="col-span-12 md:col-span-9">
               <div className="surface-section p-6 rounded-xl">
                 {selectedFile ? (
@@ -448,7 +532,6 @@ export default function ProjectDetail() {
         </div>
       )}
 
-      {/* Upload File Modal */}
       {showUploadModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
           <div className="surface-card p-8 max-w-md w-full animate-fade-in">
