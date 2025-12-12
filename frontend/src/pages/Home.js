@@ -195,7 +195,7 @@ function Home() {
                 <span>Обо мне</span>
               </div>
               <p className="section-text" style={{ color: '#cbd5e1', lineHeight: 1.6, marginBottom: '10px' }}>
-                Привет! Меня зовут Илья, мне 17 лет, и я обычный начинающий разработчик на Python, который любит аниме.
+                Привет! Меня зовут Илья, мне 18 лет, и я обычный начинающий разработчик на Python, который любит аниме.
               </p>
               <p className="section-text" style={{ color: '#cbd5e1', lineHeight: 1.6, marginBottom: '10px' }}>
                 Моя цель — создать универсального Discord бота, который будет уметь всё! (Ну, или почти)
