@@ -198,13 +198,13 @@ function Home() {
                 <i className="bi bi-heart-fill" aria-hidden="true"></i>
                 <span>Обо мне</span>
               </div>
-              <p className="section-text">
+              <p className="section-text" style={{ color: '#cbd5e1', lineHeight: 1.6, marginBottom: '10px' }}>
                 Привет! Меня зовут Илья, мне 17 лет, и я обычный начинающий разработчик на Python, который любит аниме.
               </p>
-              <p className="section-text">
+              <p className="section-text" style={{ color: '#cbd5e1', lineHeight: 1.6, marginBottom: '10px' }}>
                 Моя цель — создать универсального Discord бота, который будет уметь всё! (Ну, или почти)
               </p>
-              <p className="section-text">
+              <p className="section-text" style={{ color: '#cbd5e1', lineHeight: 1.6, marginBottom: '10px' }}>
                 День рождения{' '}
                 <span className="text-[#6b8fc9] font-semibold">
                   {birthdayInfo.relativeTime}
