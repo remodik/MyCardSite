@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const BIRTHDAY_TIMESTAMP = 1791406800;
@@ -60,7 +59,7 @@ const getLocalLikes = () => {
   }
 
   const likes = storage.getItem('pageLikes');
-  return likes ? parseInt(likes, 10) || 0 : 0;
+  return likes ? Number.parseInt(likes, 10) || 0 : 0;
 };
 
 const hasLikedLocally = () => {
