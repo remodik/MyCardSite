@@ -9,10 +9,11 @@
     "react-dom": "^18.2.0",
     "react-markdown": "^9.0.1",
     "react-router-dom": "^6.20.0",
-    "react-syntax-highlighter": "^15.5.0"
+    "react-syntax-highlighter": "^15.5.0",
+    "serve": "^14.2.0"
   },
   "scripts": {
-    "start": "node scripts/start.js",
+    "start": "npx serve -s build -l $PORT",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
     "eject": "react-scripts eject"
