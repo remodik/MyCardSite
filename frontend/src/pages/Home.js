@@ -182,7 +182,7 @@ function Home() {
           <div className="profile-header">
             <div className="avatar-ring">
                 <span className="avatar-decoration" aria-hidden="true"></span>
-                <img src="/blue_avatar.png" alt="Avatar" className="profile-avatar" />
+                <img src="/legacy/blue_avatar.png" alt="Avatar" className="profile-avatar" />
             </div>
             <div className="profile-name">remod3</div>
             <div className="profile-subtitle-stack">
