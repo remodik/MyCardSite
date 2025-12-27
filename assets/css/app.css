@@ -1,3 +1,21 @@
+/* Base styles */
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1e2a4a 0%, #2c3e50 100%) fixed;
+    color: #f0f4f8;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
 /* Markdown styles */
 .prose {
     color: #c9d1d9;
@@ -111,7 +129,7 @@
     margin-bottom: 2em;
 }
 
-/* Animations for Home page */
+/* Animations */
 @keyframes fadeInCard {
     from {
         opacity: 0;
@@ -129,6 +147,17 @@
     }
     to {
         transform: rotate(360deg);
+    }
+}
+
+@keyframes fadeInSection {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
@@ -285,13 +314,14 @@
     color: var(--text-primary);
     transition: all 0.2s ease;
     backdrop-filter: blur(4px);
+    box-sizing: border-box;
+}
 
-    &:focus {
-        outline: none;
-        border-color: var(--accent-hover);
-        box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.2);
-        background: rgba(15, 23, 41, 0.8);
-    }
+.input-field:focus {
+    outline: none;
+    border-color: var(--accent-hover);
+    box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.2);
+    background: rgba(15, 23, 41, 0.8);
 }
 
 .input-field::placeholder {
@@ -308,12 +338,12 @@
     font-size: 0.875rem;
     font-weight: 600;
     transition: all 0.2s ease;
+}
 
-    &:hover {
-        background: linear-gradient(135deg, rgba(74, 111, 165, 0.3) 0%, rgba(42, 53, 71, 0.4) 100%);
-        border-color: rgba(74, 111, 165, 0.5);
-        transform: scale(1.05);
-    }
+.pill-tag:hover {
+    background: linear-gradient(135deg, rgba(74, 111, 165, 0.3) 0%, rgba(42, 53, 71, 0.4) 100%);
+    border-color: rgba(74, 111, 165, 0.5);
+    transform: scale(1.05);
 }
 
 .prose blockquote.alert-warning {
@@ -375,10 +405,10 @@
     color: #58a6ff;
     text-decoration: none;
     word-wrap: break-word;
+}
 
-    &:hover {
-        text-decoration: underline;
-    }
+.prose a:hover {
+    text-decoration: underline;
 }
 
 .prose a code {
@@ -534,6 +564,13 @@
     z-index: 1;
 }
 
+.profile-subtitle-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+}
+
 .profile-content {
     padding: 0 24px 28px;
     background: #2f3136;
@@ -561,6 +598,10 @@
 
 .section-block:nth-of-type(3) {
     animation-delay: 0.8s;
+}
+
+.section-block:nth-of-type(4) {
+    animation-delay: 1.05s;
 }
 
 .section-title {
@@ -680,4 +721,79 @@
     margin-bottom: 16px;
     width: 100%;
     max-width: 560px;
+}
+
+/* Link styles */
+.text-link {
+    color: #6b8fc9;
+    transition: color 0.2s ease;
+}
+
+.text-link:hover {
+    color: #8aa5d6;
+}
+
+/* Screen reader only */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* File item in project detail */
+.file-item {
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #b9bbbe;
+}
+
+.file-item:hover {
+    background: #40444b;
+    border-color: rgba(114, 137, 218, 0.5);
+}
+
+.file-item.active {
+    background: #5865F2;
+    border-color: #7289DA;
+    color: white;
+}
+
+.file-item .delete-btn {
+    color: #d23369;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.file-item:hover .delete-btn {
+    opacity: 1;
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 16px;
+}
+
+.modal-content {
+    max-height: 90vh;
+    overflow-y: auto;
 }
